@@ -1,17 +1,27 @@
 import { useState } from "preact/hooks";
-import { collectorCode, fillerCode } from "virtual:bookmarklets";
+import { bookmarkletCode, bookmarkletLoaderCode } from "virtual:bookmarklets";
+import { useAppI18n } from "./i18n";
+import * as styles from "./styles.css";
 
 function BookmarkletCard({
   title,
   description,
   code,
+  wrapCode = false,
+  dragLinkText,
+  copiedText,
+  copyUrlText,
 }: {
   title: string;
   description: string;
   code: string;
+  wrapCode?: boolean;
+  dragLinkText: string;
+  copiedText: string;
+  copyUrlText: string;
 }) {
   const [copied, setCopied] = useState(false);
-  const href = `javascript:${encodeURIComponent(code)}`;
+  const href = wrapCode ? `javascript:!function(){${code}}();` : `javascript:${code}`;
 
   const handleCopy = async () => {
     try {
@@ -30,44 +40,15 @@ function BookmarkletCard({
   };
 
   return (
-    <div
-      style={{
-        border: "1px solid #ddd",
-        borderRadius: 8,
-        padding: 20,
-        marginBottom: 20,
-        background: "#fff",
-      }}
-    >
-      <h2 style={{ marginTop: 0 }}>{title}</h2>
-      <p style={{ color: "#555" }}>{description}</p>
-      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-        <a
-          href={href}
-          style={{
-            padding: "8px 16px",
-            background: "#198754",
-            color: "#fff",
-            borderRadius: 5,
-            textDecoration: "none",
-            fontWeight: 600,
-          }}
-        >
-          📌 Drag to Bookmarks Bar
+    <div className={styles.card}>
+      <h2 className={styles.cardTitle}>{title}</h2>
+      <p className={styles.cardDesc}>{description}</p>
+      <div className={styles.actionsRow}>
+        <a href={href} className={styles.dragLink}>
+          {dragLinkText}
         </a>
-        <button
-          onClick={handleCopy}
-          style={{
-            padding: "8px 16px",
-            background: "#0d6efd",
-            color: "#fff",
-            border: "none",
-            borderRadius: 5,
-            cursor: "pointer",
-            fontWeight: 600,
-          }}
-        >
-          {copied ? "✓ Copied!" : "📋 Copy URL"}
+        <button onClick={handleCopy} className={styles.copyBtn}>
+          {copied ? copiedText : copyUrlText}
         </button>
       </div>
     </div>
@@ -75,32 +56,35 @@ function BookmarkletCard({
 }
 
 export default function Page() {
+  const { t, toggleLang } = useAppI18n();
   return (
-    <div
-      style={{
-        maxWidth: 700,
-        margin: "0 auto",
-        padding: "40px 20px",
-        fontFamily: "system-ui, sans-serif",
-      }}
-    >
-      <h1 style={{ marginBottom: 8 }}>FormSnap</h1>
-      <p style={{ color: "#666", marginBottom: 32 }}>
-        Browser bookmarklets for collecting and filling form data on any webpage.
-        Works with vanilla HTML forms, React, Vue, Angular, and any other framework.
-      </p>
+    <div className={styles.page}>
+      <div className={styles.pageHeader}>
+        <h1 className={styles.pageTitle}>FormSnap</h1>
+        <button className={styles.langBtn} onClick={toggleLang}>
+          {t.langToggle}
+        </button>
+      </div>
+      <p className={styles.pageDesc}>{t.pageDesc}</p>
       <BookmarkletCard
-        title="📋 Form Collector"
-        description="Scans all form fields on the current page and exports their state as JSON. Supports filtering by visibility, disabled state, button type, and empty values."
-        code={collectorCode}
+        title={t.card1Title}
+        description={t.card1Desc}
+        code={bookmarkletCode}
+        wrapCode
+        dragLinkText={t.dragLink}
+        copiedText={t.copied}
+        copyUrlText={t.copyUrl}
       />
       <BookmarkletCard
-        title="✏️ Form Filler"
-        description="Takes JSON collected by the Form Collector and fills form fields back. Fires native input/change events for React/Vue/Angular compatibility."
-        code={fillerCode}
+        title={t.card2Title}
+        description={t.card2Desc}
+        code={bookmarkletLoaderCode}
+        dragLinkText={t.dragLink}
+        copiedText={t.copied}
+        copyUrlText={t.copyUrl}
       />
-      <footer style={{ marginTop: 40, color: "#aaa", fontSize: 13 }}>
-        <a href="https://github.com/billstark001/formsnap" style={{ color: "#aaa" }}>
+      <footer className={styles.footer}>
+        <a href="https://github.com/billstark001/formsnap" className={styles.footerLink}>
           GitHub
         </a>
       </footer>

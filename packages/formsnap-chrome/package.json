@@ -9,10 +9,12 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@vanilla-extract/css": "^1.16.0",
     "formsnap": "workspace:*",
     "preact": "^10.22.0"
   },
   "devDependencies": {
+    "@vanilla-extract/vite-plugin": "^5.1.4",
     "@preact/preset-vite": "^2.8.1",
     "@types/chrome": "^0.0.268",
     "typescript": "^5.5.0",

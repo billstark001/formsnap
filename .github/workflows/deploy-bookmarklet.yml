@@ -29,6 +29,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter formsnap build
       - run: pnpm --filter formsnap-bookmarklet build
+        env:
+          VITE_BASE_PATH: /formsnap
       - uses: actions/upload-pages-artifact@v3
         with:
           path: packages/formsnap-bookmarklet/dist

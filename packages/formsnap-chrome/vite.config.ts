@@ -1,5 +1,6 @@
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
+import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin";
 import { resolve } from "node:path";
 import { copyFileSync, mkdirSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -23,6 +24,7 @@ function writePlaceholderIcon(dest: string) {
 export default defineConfig({
   plugins: [
     preact(),
+    vanillaExtractPlugin(),
     {
       name: "copy-manifest",
       closeBundle() {

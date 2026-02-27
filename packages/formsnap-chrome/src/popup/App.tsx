@@ -1,4 +1,5 @@
 import { useState } from "preact/hooks";
+import * as styles from "./styles.css";
 
 type Tab = "collect" | "fill";
 type ResultItem = { status: "ok" | "skip" | "fail"; selector: string; reason?: string };
@@ -73,38 +74,28 @@ export default function App() {
     }
   };
 
-  const btnStyle = (active: boolean) => ({
-    padding: "6px 16px",
-    background: active ? "#0d6efd" : "#f0f0f0",
-    color: active ? "#fff" : "#333",
-    border: "none",
-    borderRadius: 4,
-    cursor: "pointer",
-    fontWeight: 600 as const,
-  });
-
-  const checkRow = (label: string, sublabel: string, checked: boolean, onChange: (v: boolean) => void) => (
-    <label style={{ display: "flex", gap: 8, marginBottom: 8, cursor: "pointer", alignItems: "flex-start" }}>
-      <input type="checkbox" checked={checked} onChange={(e) => onChange((e.target as HTMLInputElement).checked)} style={{ marginTop: 3 }} />
-      <span><b>{label}</b>{sublabel && <><br /><span style={{ color: "#888", fontSize: 12 }}>{sublabel}</span></>}</span>
+  const checkRow = (label: string, subLabel: string, checked: boolean, onChange: (v: boolean) => void) => (
+    <label className={styles.checkLabel}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange((e.target as HTMLInputElement).checked)} className={styles.checkInput} />
+      <span><b>{label}</b>{subLabel && <><br /><span className={styles.checkSubLabel}>{subLabel}</span></>}</span>
     </label>
   );
 
   return (
-    <div style={{ padding: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <span style={{ fontWeight: 700, fontSize: 16 }}>FormSnap</span>
-        <div style={{ display: "flex", gap: 4 }}>
-          <button style={btnStyle(tab === "collect")} onClick={() => setTab("collect")}>Collect</button>
-          <button style={btnStyle(tab === "fill")} onClick={() => setTab("fill")}>Fill</button>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <span className={styles.headerTitle}>FormSnap</span>
+        <div className={styles.tabGroup}>
+          <button className={styles.tabBtn[tab === "collect" ? "active" : "default"]} onClick={() => setTab("collect")}>Collect</button>
+          <button className={styles.tabBtn[tab === "fill" ? "active" : "default"]} onClick={() => setTab("fill")}>Fill</button>
         </div>
       </div>
 
-      {error && <div style={{ background: "#f8d7da", borderLeft: "4px solid #dc3545", padding: "8px 12px", borderRadius: 5, marginBottom: 10, fontSize: 13 }}>{error}</div>}
+      {error && <div className={styles.errorBox}>{error}</div>}
 
       {tab === "collect" && (
         <div>
-          <div style={{ background: "#f5f7fa", border: "1px solid #e0e4ea", borderRadius: 7, padding: 12, marginBottom: 12 }}>
+          <div className={styles.optionsBox}>
             {checkRow("Include hidden", "type=hidden, display:none", incHidden, setIncHidden)}
             {checkRow("Include disabled/readonly", "", incDisabled, setIncDisabled)}
             {checkRow("Include button inputs", "submit / reset / button", incButtons, setIncButtons)}
@@ -113,7 +104,7 @@ export default function App() {
           <button
             onClick={handleCollect}
             disabled={collecting}
-            style={{ display: "block", width: "100%", padding: 9, background: "#198754", color: "#fff", border: "none", borderRadius: 6, fontSize: 15, fontWeight: 600, cursor: "pointer", marginBottom: 10 }}
+            className={styles.collectBtn}
           >
             {collecting ? "Collecting…" : "▶ Collect"}
           </button>
@@ -122,11 +113,11 @@ export default function App() {
               <textarea
                 readOnly
                 value={collectedJson}
-                style={{ width: "100%", height: 180, fontFamily: "monospace", fontSize: 11, border: "1px solid #ddd", padding: 8, boxSizing: "border-box", borderRadius: 5, background: "#fafafa", resize: "vertical" }}
+                className={styles.collectedTextarea}
               />
               <button
                 onClick={() => navigator.clipboard.writeText(collectedJson)}
-                style={{ padding: "5px 14px", background: "#0d6efd", color: "#fff", border: "none", borderRadius: 4, cursor: "pointer", marginTop: 6 }}
+                className={styles.copyBtn}
               >
                 📋 Copy
               </button>
@@ -137,7 +128,7 @@ export default function App() {
 
       {tab === "fill" && (
         <div>
-          <div style={{ background: "#f5f7fa", border: "1px solid #e0e4ea", borderRadius: 7, padding: 12, marginBottom: 12 }}>
+          <div className={styles.optionsBox}>
             {checkRow("Fire input events", "React/Vue/Angular compatible", doFire, setDoFire)}
             {checkRow("Fallback matching", "Try name → id when selector fails", doFallback, setDoFallback)}
             {checkRow("Fill readonly fields", "", fillReadonly, setFillReadonly)}
@@ -147,17 +138,17 @@ export default function App() {
             value={fillJson}
             onInput={(e) => setFillJson((e.target as HTMLTextAreaElement).value)}
             placeholder="Paste JSON from Form Collector…"
-            style={{ width: "100%", height: 150, fontFamily: "monospace", fontSize: 11, border: "1px solid #ddd", padding: 8, boxSizing: "border-box", borderRadius: 5, background: "#fafafa", resize: "vertical", marginBottom: 10 }}
+            className={styles.fillTextarea}
           />
           <button
             onClick={handleFill}
             disabled={filling}
-            style={{ display: "block", width: "100%", padding: 9, background: "#0d6efd", color: "#fff", border: "none", borderRadius: 6, fontSize: 15, fontWeight: 600, cursor: "pointer", marginBottom: 10 }}
+            className={styles.fillBtn}
           >
             {filling ? "Filling…" : "▶ Fill"}
           </button>
           {results.length > 0 && (
-            <div style={{ maxHeight: 150, overflowY: "auto", fontFamily: "monospace", fontSize: 11, border: "1px solid #ddd", borderRadius: 5, padding: 8, background: "#fafafa" }}>
+            <div className={styles.resultBox}>
               {results.map((r, i) => (
                 <div key={i}>
                   <StatusBadge status={r.status} /> {r.selector}{r.reason ? ` (${r.reason})` : ""}
@@ -170,3 +161,4 @@ export default function App() {
     </div>
   );
 }
+
