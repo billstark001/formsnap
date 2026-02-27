@@ -1,0 +1,41 @@
+name: Package Chrome Extension
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter formsnap build
+      - run: pnpm --filter formsnap-chrome build
+      - name: Zip extension
+        run: |
+          cd packages/formsnap-chrome/dist
+          zip -r ../../../formsnap-chrome.zip .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: formsnap-chrome
+          path: formsnap-chrome.zip
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: formsnap-chrome.zip
+        # Note: Chrome Web Store publishing requires CWS_CLIENT_ID,
+        # CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN, and CWS_EXTENSION_ID secrets.
+        # See the "Chrome Web Store publishing" section in README.md for setup instructions.
