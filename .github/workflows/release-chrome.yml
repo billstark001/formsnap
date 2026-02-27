@@ -38,4 +38,4 @@ jobs:
           files: formsnap-chrome.zip
         # Note: Chrome Web Store publishing requires CWS_CLIENT_ID,
         # CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN, and CWS_EXTENSION_ID secrets.
-        # See docs/PUBLISHING.md for setup instructions.
+        # See the "Chrome Web Store publishing" section in README.md for setup instructions.
