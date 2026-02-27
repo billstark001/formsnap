@@ -3,14 +3,19 @@ import type { CollectOptions, FillOptions, FieldInfo } from "formsnap";
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "collect") {
-    const options = message.payload as CollectOptions;
+    const options = (message.payload ?? {}) as CollectOptions;
     const fields = collectFields(options);
     sendResponse(fields);
   } else if (message.type === "fill") {
-    const { fields, options } = message.payload as {
-      fields: FieldInfo[];
-      options: FillOptions;
-    };
+    const payload = message.payload as { fields?: unknown; options?: unknown };
+    if (!payload || !Array.isArray(payload.fields)) {
+      sendResponse([]);
+      return true;
+    }
+    const fields = payload.fields as FieldInfo[];
+    const options = (typeof payload.options === "object" && payload.options !== null
+      ? payload.options
+      : {}) as FillOptions;
     const results = fillFields(fields, options);
     sendResponse(results);
   }

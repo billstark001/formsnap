@@ -11,7 +11,7 @@ Browser tools for collecting and re-filling form data. Provided as:
 | Package | Description |
 |---|---|
 | [`packages/formsnap`](packages/formsnap) | Core ESM library — selector generation, collection, filling |
-| [`packages/formsnap-bookmarklet`](packages/formsnap-bookmarklet) | Static SSG site (Vite + Vike + Preact) hosting the bookmarklets |
+| [`packages/formsnap-bookmarklet`](packages/formsnap-bookmarklet) | Static site (Vite + Preact) hosting the bookmarklets |
 | [`packages/formsnap-chrome`](packages/formsnap-chrome) | Chrome Extension (Manifest V3, Vite + Preact) |
 
 ## Quick Start
