@@ -25,6 +25,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
   const [includeDisabled, setIncludeDisabled] = useState(false);
   const [includeButtons, setIncludeButtons] = useState(false);
   const [includeEmpty, setIncludeEmpty] = useState(false);
+  const [includeOptions, setIncludeOptions] = useState(false);
   const [result, setResult] = useState<CollectorResult>({ status: "idle" });
   const [copied, setCopied] = useState(false);
 
@@ -34,6 +35,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
       includeDisabled,
       includeButtons,
       includeEmpty,
+      includeOptions,
     };
     const allEls = Array.from(
       document.querySelectorAll<
@@ -53,7 +55,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
       if (!options.includeDisabled && !isEditable(el as HTMLInputElement))
         continue;
       if (!options.includeEmpty && isEmpty(el as HTMLInputElement)) continue;
-      collected.push(extractInfo(el as HTMLInputElement));
+      collected.push(extractInfo(el as HTMLInputElement, options.includeOptions));
     }
 
     (window as any).__form__ = collected;
@@ -121,6 +123,20 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
           <span>
             <span className={s.checkTitle}>{t.inclButtons}</span>
             <span className={s.checkHint}>{t.inclButtonsHint}</span>
+          </span>
+        </label>
+        <label className={s.checkLabel}>
+          <input
+            type="checkbox"
+            className={s.checkInput}
+            checked={includeOptions}
+            onChange={(e) =>
+              setIncludeOptions((e.target as HTMLInputElement).checked)
+            }
+          />
+          <span>
+            <span className={s.checkTitle}>{t.inclOptions}</span>
+            <span className={s.checkHint}>{t.inclOptionsHint}</span>
           </span>
         </label>
         <label className={s.checkLabel}>

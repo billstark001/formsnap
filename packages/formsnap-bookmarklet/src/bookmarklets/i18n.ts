@@ -32,6 +32,8 @@ const locale = {
     inclDisabled: "包含禁用/只读字段",
     inclButtons: "包含按钮类输入",
     inclButtonsHint: "button / submit / reset / image",
+    inclOptions: "包含选项数据",
+    inclOptionsHint: "select 的 option 标签文本和选中状态",
     inclEmpty: "包含空字段",
     // collector actions
     collect: "▶ 采集",
@@ -74,6 +76,8 @@ const locale = {
     inclDisabled: "Include disabled / read-only fields",
     inclButtons: "Include button-type inputs",
     inclButtonsHint: "button / submit / reset / image",
+    inclOptions: "Include options data",
+    inclOptionsHint: "Option text and selected state for select elements",
     inclEmpty: "Include empty fields",
     // collector actions
     collect: "▶ Collect",

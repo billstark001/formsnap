@@ -12,7 +12,7 @@ export interface FieldInfo {
   // select (single)
   value?: string;
   selectedText?: string;
-  options?: Array<{ value: string; text: string; selected: boolean }>;
+  options?: Array<{ value: string; text: string }>;
   // select (multiple)
   multiple?: boolean;
   selectedValues?: Array<{ value: string; text: string }>;
@@ -31,6 +31,8 @@ export interface CollectOptions {
   includeButtons?: boolean;
   /** Include fields with empty values. Default: false */
   includeEmpty?: boolean;
+  /** Collect full options list for select elements (useful for AI context, not needed for restoration). Default: false */
+  includeOptions?: boolean;
 }
 
 /** Options for filling form fields. */

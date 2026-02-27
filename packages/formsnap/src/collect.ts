@@ -48,7 +48,8 @@ export function isEmpty(
 
 /** Extracts a serialisable info object from a form element. */
 export function extractInfo(
-  el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
+  includeOptions: boolean = false
 ): FieldInfo {
   const tag = el.tagName.toLowerCase();
   const type = ((el as HTMLInputElement).type ?? "").toLowerCase();
@@ -78,11 +79,13 @@ export function extractInfo(
       const opt = sel.options[sel.selectedIndex];
       info.selectedText = opt ? opt.text.trim() : "";
     }
-    info.options = Array.from(sel.options).map((o) => ({
-      value: o.value,
-      text: o.text.trim(),
-      selected: o.selected,
-    }));
+    if (includeOptions) {
+      info.options = Array.from(sel.options).map((o) => ({
+        value: o.value,
+        text: o.text.trim(),
+      }));
+      console.log("Collected options for", info.selector, info.options);
+    }
   } else if (type === "checkbox" || type === "radio") {
     const inp = el as HTMLInputElement;
     info.value = inp.value;
@@ -110,6 +113,7 @@ export function collectFields(
     includeDisabled = false,
     includeButtons = false,
     includeEmpty = false,
+    includeOptions = false,
   } = options;
 
   const results: FieldInfo[] = [];
@@ -123,7 +127,7 @@ export function collectFields(
     if (!includeHidden && !isVisible(el as HTMLElement)) continue;
     if (!includeDisabled && !isEditable(el as HTMLInputElement)) continue;
     if (!includeEmpty && isEmpty(el as HTMLInputElement)) continue;
-    results.push(extractInfo(el as HTMLInputElement));
+    results.push(extractInfo(el as HTMLInputElement, includeOptions));
   }
 
   return results;
