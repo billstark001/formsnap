@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 import * as styles from "./styles.css";
+import { useI18n } from "./i18n";
 
 type Tab = "collect" | "fill";
 type ResultItem = { status: "ok" | "skip" | "fail"; selector: string; reason?: string };
@@ -17,6 +18,7 @@ function StatusBadge({ status }: { status: "ok" | "skip" | "fail" }) {
 }
 
 export default function App() {
+  const { t, toggleLang } = useI18n();
   const [tab, setTab] = useState<Tab>("collect");
   const [collecting, setCollecting] = useState(false);
   const [filling, setFilling] = useState(false);
@@ -84,10 +86,11 @@ export default function App() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <span className={styles.headerTitle}>FormSnap</span>
+        <span className={styles.headerTitle}>{t.title}</span>
         <div className={styles.tabGroup}>
-          <button className={styles.tabBtn[tab === "collect" ? "active" : "default"]} onClick={() => setTab("collect")}>Collect</button>
-          <button className={styles.tabBtn[tab === "fill" ? "active" : "default"]} onClick={() => setTab("fill")}>Fill</button>
+          <button className={styles.tabBtn[tab === "collect" ? "active" : "default"]} onClick={() => setTab("collect")}>{t.tabCollect}</button>
+          <button className={styles.tabBtn[tab === "fill" ? "active" : "default"]} onClick={() => setTab("fill")}>{t.tabFill}</button>
+          <button className={styles.langBtn} onClick={toggleLang}>{t.langToggle}</button>
         </div>
       </div>
 
@@ -96,17 +99,17 @@ export default function App() {
       {tab === "collect" && (
         <div>
           <div className={styles.optionsBox}>
-            {checkRow("Include hidden", "type=hidden, display:none", incHidden, setIncHidden)}
-            {checkRow("Include disabled/readonly", "", incDisabled, setIncDisabled)}
-            {checkRow("Include button inputs", "submit / reset / button", incButtons, setIncButtons)}
-            {checkRow("Include empty fields", "", incEmpty, setIncEmpty)}
+            {checkRow(t.inclHidden, t.inclHiddenHint, incHidden, setIncHidden)}
+            {checkRow(t.inclDisabled, "", incDisabled, setIncDisabled)}
+            {checkRow(t.inclButtons, t.inclButtonsHint, incButtons, setIncButtons)}
+            {checkRow(t.inclEmpty, "", incEmpty, setIncEmpty)}
           </div>
           <button
             onClick={handleCollect}
             disabled={collecting}
             className={styles.collectBtn}
           >
-            {collecting ? "Collecting…" : "▶ Collect"}
+            {collecting ? t.collecting : t.collect}
           </button>
           {collectedJson && (
             <>
@@ -119,7 +122,7 @@ export default function App() {
                 onClick={() => navigator.clipboard.writeText(collectedJson)}
                 className={styles.copyBtn}
               >
-                📋 Copy
+                {t.copy}
               </button>
             </>
           )}
@@ -129,15 +132,15 @@ export default function App() {
       {tab === "fill" && (
         <div>
           <div className={styles.optionsBox}>
-            {checkRow("Fire input events", "React/Vue/Angular compatible", doFire, setDoFire)}
-            {checkRow("Fallback matching", "Try name → id when selector fails", doFallback, setDoFallback)}
-            {checkRow("Fill readonly fields", "", fillReadonly, setFillReadonly)}
-            {checkRow("Fill disabled fields", "", fillDisabled, setFillDisabled)}
+            {checkRow(t.fireEvents, t.fireEventsHint, doFire, setDoFire)}
+            {checkRow(t.fallbackMatch, t.fallbackMatchHint, doFallback, setDoFallback)}
+            {checkRow(t.fillReadonly, "", fillReadonly, setFillReadonly)}
+            {checkRow(t.fillDisabled, "", fillDisabled, setFillDisabled)}
           </div>
           <textarea
             value={fillJson}
             onInput={(e) => setFillJson((e.target as HTMLTextAreaElement).value)}
-            placeholder="Paste JSON from Form Collector…"
+            placeholder={t.fillPlaceholder}
             className={styles.fillTextarea}
           />
           <button
@@ -145,7 +148,7 @@ export default function App() {
             disabled={filling}
             className={styles.fillBtn}
           >
-            {filling ? "Filling…" : "▶ Fill"}
+            {filling ? t.filling : t.fill}
           </button>
           {results.length > 0 && (
             <div className={styles.resultBox}>

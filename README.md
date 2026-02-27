@@ -56,12 +56,14 @@ pnpm test           # run tests (Vitest, formsnap package)
 ## Testing
 
 Uses **[Vitest](https://vitest.dev/)** (not Jest) because:
+
 - Native ESM support without transform overhead
 - Shares Vite's config and plugin pipeline
 - Faster cold-start and watch mode
 - First-class TypeScript support
 
 Run tests:
+
 ```bash
 pnpm --filter formsnap test
 ```
@@ -76,6 +78,7 @@ pnpm --filter formsnap test
 ### Chrome Web Store publishing
 
 Automated publishing to the Chrome Web Store requires the following repository secrets:
+
 - `CWS_CLIENT_ID`
 - `CWS_CLIENT_SECRET`
 - `CWS_REFRESH_TOKEN`

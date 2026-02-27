@@ -141,3 +141,14 @@ export const resultBox = style({
   padding: 8,
   background: "#fafafa",
 });
+
+export const langBtn = style({
+  padding: "3px 8px",
+  background: "transparent",
+  color: "#555",
+  border: "1px solid #bbb",
+  borderRadius: 4,
+  cursor: "pointer",
+  fontSize: 12,
+  marginLeft: 6,
+});

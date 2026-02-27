@@ -26,7 +26,7 @@ const appLocale = {
       "点击后弹出悬浮面板，内含「采集器」和「填充器」两个选项卡。\n采集器可将当前页面所有表单字段导出为 JSON；填充器可将 JSON 数据回填至表单字段，兼容 React/Vue/Angular 事件系统。\n完整 bundle 内嵌于书签，无需外部依赖。",
     card2Title: "⚡ FormSnap 工具箱（远程加载版）",
     card2Desc:
-      "体积极小的书签脚本，点击后动态向页面注入远程 formsnap.js，始终加载最新版本。\n需要网络访问 GitHub Pages。",
+      "体积极小的书签脚本，点击后动态向页面注入远程 formsnap.js，始终加载最新版本。\n需要网络访问 GitHub Pages 与 CORS/CSP 支持。",
     dragLink: "📌 拖到书签栏",
     copied: "✓ 已复制！",
     copyUrl: "📋 复制链接",
@@ -40,7 +40,7 @@ const appLocale = {
       "Click to open a floating panel with a Collector tab and a Filler tab.\nThe Collector exports all form fields on the page as JSON; the Filler injects JSON data back into form fields, compatible with React/Vue/Angular event systems.\nThe full bundle is embedded in the bookmark — no external dependencies.",
     card2Title: "⚡ FormSnap Toolbox (Remote Loader)",
     card2Desc:
-      "A tiny bookmark script that dynamically injects the remote formsnap.js, always loading the latest version.\nRequires network access to GitHub Pages.",
+      "A tiny bookmark script that dynamically injects the remote formsnap.js, always loading the latest version.\nRequires network access to GitHub Pages and CORS/CSP support.",
     dragLink: "📌 Drag to Bookmarks Bar",
     copied: "✓ Copied!",
     copyUrl: "📋 Copy URL",

@@ -51,6 +51,7 @@ function bookmarkletPlugin() {
         const loaderCode =
           `var s=document.createElement('script');` +
           `s.src=${JSON.stringify(remoteUrl)};` +
+          `s.onerror=function(){alert('FormSnap: Failed to load script (blocked by CORS/CSP or network error). Try again later or use the full script.');};` +
           `document.head.appendChild(s);`;
         return [
           `export const bookmarkletCode = ${JSON.stringify(code)};`,

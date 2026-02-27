@@ -79,6 +79,7 @@ export default function Page() {
         title={t.card2Title}
         description={t.card2Desc}
         code={bookmarkletLoaderCode}
+        wrapCode
         dragLinkText={t.dragLink}
         copiedText={t.copied}
         copyUrlText={t.copyUrl}
