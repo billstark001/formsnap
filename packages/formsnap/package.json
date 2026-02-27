@@ -1,0 +1,30 @@
+{
+  "name": "formsnap",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "test": "vitest run",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/jsdom": "^21.1.7",
+    "@types/node": "^20.0.0",
+    "rollup": "^4.18.0",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0",
+    "jsdom": "^24.1.0",
+    "@vitest/coverage-v8": "^2.0.0",
+    "tslib": "^2.6.3"
+  }
+}
