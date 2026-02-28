@@ -48,6 +48,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         popup: resolve(__dirname, "popup/index.html"),
+        settings: resolve(__dirname, "settings/index.html"),
         content: resolve(__dirname, "src/content/index.ts"),
       },
       output: {

@@ -3,7 +3,11 @@
   "name": "FormSnap",
   "version": "0.1.0",
   "description": "Collect and fill form data on any webpage.",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "storage"],
+  "options_ui": {
+    "page": "settings/index.html",
+    "open_in_tab": true
+  },
   "action": {
     "default_popup": "popup/index.html",
     "default_title": "FormSnap"

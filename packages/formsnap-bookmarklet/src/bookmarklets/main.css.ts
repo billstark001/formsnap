@@ -1,6 +1,12 @@
-import { style, globalStyle } from "@vanilla-extract/css";
+import { style } from "@vanilla-extract/css";
 
+// all:initial on the modal itself breaks the inheritance chain from the host page.
+// Interactive children (button, input, textarea, label) each get all:revert to
+// undo any host-page element selectors (specificity 0,0,1) while our class rules
+// (0,1,0) remain authoritative via explicit per-property overrides.
 export const modal = style({
+  all: "initial",
+  display: "block",
   position: "fixed",
   top: "5%",
   left: "50%",
@@ -35,6 +41,7 @@ export const headerTitle = style({
 });
 
 export const closeBtn = style({
+  all: "revert",
   border: "none",
   background: "none",
   fontSize: 22,
@@ -52,6 +59,7 @@ export const tabBar = style({
 });
 
 export const tab = style({
+  all: "revert",
   padding: "8px 20px",
   cursor: "pointer",
   background: "none",
@@ -91,6 +99,7 @@ export const optionsTitle = style({
 });
 
 export const checkLabel = style({
+  all: "revert",
   display: "flex",
   gap: 9,
   marginBottom: 8,
@@ -104,6 +113,7 @@ export const checkLabel = style({
 });
 
 export const checkInput = style({
+  all: "revert",
   marginTop: 3,
   flexShrink: 0,
 });
@@ -120,6 +130,7 @@ export const checkHint = style({
 
 // Buttons
 export const primaryBtn = style({
+  all: "revert",
   display: "block",
   width: "100%",
   padding: "9px 0",
@@ -130,6 +141,7 @@ export const primaryBtn = style({
   fontWeight: 600,
   cursor: "pointer",
   marginBottom: 12,
+  boxSizing: "border-box",
 });
 
 export const btnGreen = style({
@@ -185,6 +197,7 @@ export const sectionTitle = style({
 });
 
 export const smallBtn = style({
+  all: "revert",
   fontSize: 12,
   padding: "2px 8px",
   border: "1px solid #ccc",
@@ -195,6 +208,7 @@ export const smallBtn = style({
 });
 
 export const textarea = style({
+  all: "revert",
   width: "100%",
   fontFamily: "monospace",
   fontSize: 12,
@@ -232,6 +246,7 @@ export const actionsRow = style({
 });
 
 export const actionBtn = style({
+  all: "revert",
   padding: "6px 16px",
   border: "none",
   borderRadius: 4,

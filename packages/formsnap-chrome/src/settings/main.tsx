@@ -1,5 +1,5 @@
 import { render } from "preact";
-import App from "./App.js";
+import SettingsApp from "./App.js";
 import { loadSettings } from "../settings-store.js";
 import { lightTheme, darkTheme } from "../theme.css.js";
 
@@ -7,5 +7,5 @@ import { lightTheme, darkTheme } from "../theme.css.js";
   const settings = await loadSettings();
   document.documentElement.className =
     settings.theme === "dark" ? darkTheme : lightTheme;
-  render(<App initialLang={settings.lang} />, document.getElementById("app")!);
+  render(<SettingsApp />, document.getElementById("app")!);
 })();

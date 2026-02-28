@@ -1,7 +1,11 @@
 import { style, styleVariants } from "@vanilla-extract/css";
+import { themeVars } from "../theme.css";
 
 export const container = style({
   padding: 16,
+  background: themeVars.bg,
+  color: themeVars.text,
+  minHeight: "100%",
 });
 
 export const header = style({
@@ -19,19 +23,32 @@ export const headerTitle = style({
 export const tabGroup = style({
   display: "flex",
   gap: 4,
+  alignItems: "center",
 });
 
 const tabBtnBase = {
-  padding: "6px 16px",
+  padding: "6px 12px",
   border: "none",
   borderRadius: 4,
   cursor: "pointer",
   fontWeight: 600,
+  fontSize: 13,
 } as const;
 
 export const tabBtn = styleVariants({
-  default: { ...tabBtnBase, background: "#f0f0f0", color: "#333" },
+  default: { ...tabBtnBase, background: themeVars.bgAlt, color: themeVars.textMuted },
   active: { ...tabBtnBase, background: "#0d6efd", color: "#fff" },
+});
+
+export const iconBtn = style({
+  padding: "5px 8px",
+  background: "transparent",
+  color: themeVars.textMuted,
+  border: `1px solid ${themeVars.borderLight}`,
+  borderRadius: 4,
+  cursor: "pointer",
+  fontSize: 14,
+  lineHeight: 1,
 });
 
 export const errorBox = style({
@@ -41,11 +58,12 @@ export const errorBox = style({
   borderRadius: 5,
   marginBottom: 10,
   fontSize: 13,
+  color: "#721c24",
 });
 
 export const optionsBox = style({
-  background: "#f5f7fa",
-  border: "1px solid #e0e4ea",
+  background: themeVars.bgAlt,
+  border: `1px solid ${themeVars.borderLight}`,
   borderRadius: 7,
   padding: 12,
   marginBottom: 12,
@@ -64,7 +82,7 @@ export const checkInput = style({
 });
 
 export const checkSubLabel = style({
-  color: "#888",
+  color: themeVars.textMuted,
   fontSize: 12,
 });
 
@@ -102,53 +120,135 @@ const monoTextareaBase = {
   width: "100%",
   fontFamily: "monospace",
   fontSize: 11,
-  border: "1px solid #ddd",
+  border: `1px solid ${themeVars.border}`,
   padding: 8,
-  boxSizing: "border-box",
+  boxSizing: "border-box" as const,
   borderRadius: 5,
-  background: "#fafafa",
-  resize: "vertical",
-} as const;
+  background: themeVars.bgInput,
+  color: themeVars.text,
+  resize: "vertical" as const,
+};
 
 export const collectedTextarea = style({
   ...monoTextareaBase,
-  height: 180,
+  height: 150,
+  marginBottom: 8,
 });
 
 export const fillTextarea = style({
   ...monoTextareaBase,
-  height: 150,
+  height: 130,
   marginBottom: 10,
 });
 
+export const noteInput = style({
+  width: "100%",
+  fontFamily: "system-ui, sans-serif",
+  fontSize: 12,
+  border: `1px solid ${themeVars.border}`,
+  padding: "5px 8px",
+  boxSizing: "border-box",
+  borderRadius: 4,
+  background: themeVars.bgInput,
+  color: themeVars.text,
+  marginBottom: 6,
+});
+
+export const rowBtns = style({
+  display: "flex",
+  gap: 6,
+  marginBottom: 6,
+});
+
 export const copyBtn = style({
-  padding: "5px 14px",
+  flex: 1,
+  padding: "5px 0",
   background: "#0d6efd",
   color: "#fff",
   border: "none",
   borderRadius: 4,
   cursor: "pointer",
-  marginTop: 6,
+  fontSize: 13,
+});
+
+export const saveBtn = style({
+  flex: 1,
+  padding: "5px 0",
+  background: "#198754",
+  color: "#fff",
+  border: "none",
+  borderRadius: 4,
+  cursor: "pointer",
+  fontSize: 13,
 });
 
 export const resultBox = style({
-  maxHeight: 150,
+  maxHeight: 130,
   overflowY: "auto",
   fontFamily: "monospace",
   fontSize: 11,
-  border: "1px solid #ddd",
+  border: `1px solid ${themeVars.border}`,
   borderRadius: 5,
   padding: 8,
-  background: "#fafafa",
+  background: themeVars.bgInput,
+  color: themeVars.text,
 });
 
-export const langBtn = style({
-  padding: "3px 8px",
-  background: "transparent",
-  color: "#555",
-  border: "1px solid #bbb",
+// Saved forms tab
+export const savedList = style({
+  display: "flex",
+  flexDirection: "column",
+  gap: 8,
+});
+
+export const savedCard = style({
+  border: `1px solid ${themeVars.borderLight}`,
+  borderRadius: 6,
+  padding: 10,
+  background: themeVars.bgAlt,
+});
+
+export const savedMeta = style({
+  fontSize: 11,
+  color: themeVars.textMuted,
+  marginBottom: 4,
+});
+
+export const savedNote = style({
+  fontSize: 12,
+  fontStyle: "italic",
+  color: themeVars.text,
+  marginBottom: 6,
+});
+
+export const savedCardBtns = style({
+  display: "flex",
+  gap: 6,
+});
+
+export const restoreBtn = style({
+  padding: "3px 10px",
+  background: "#0d6efd",
+  color: "#fff",
+  border: "none",
   borderRadius: 4,
   cursor: "pointer",
   fontSize: 12,
-  marginLeft: 6,
+});
+
+export const deleteBtn = style({
+  padding: "3px 10px",
+  background: themeVars.bgInput,
+  color: themeVars.textMuted,
+  border: `1px solid ${themeVars.border}`,
+  borderRadius: 4,
+  cursor: "pointer",
+  fontSize: 12,
+});
+
+export const emptyMsg = style({
+  color: themeVars.textMuted,
+  fontSize: 13,
+  textAlign: "center",
+  padding: "20px 0",
 });
