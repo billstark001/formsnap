@@ -144,3 +144,4 @@ dist-bookmarklets/
 .vike/
 
 .DS_Store
+tmp

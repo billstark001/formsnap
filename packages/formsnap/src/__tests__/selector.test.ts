@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { JSDOM } from "jsdom";
-import { getSelector } from "../selector.js";
+import { getSelector } from "../dom/selector.js";
 
 let dom: JSDOM;
 let document: Document;

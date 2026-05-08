@@ -9,10 +9,38 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./shared": {
+      "import": "./dist/shared/index.js",
+      "types": "./dist/shared/index.d.ts"
+    },
+    "./dom": {
+      "import": "./dist/dom/index.js",
+      "types": "./dist/dom/index.d.ts"
+    },
+    "./analysis": {
+      "import": "./dist/analysis/index.js",
+      "types": "./dist/analysis/index.d.ts"
+    },
+    "./rules": {
+      "import": "./dist/rules/index.js",
+      "types": "./dist/rules/index.d.ts"
+    },
+    "./snapshot": {
+      "import": "./dist/snapshot/index.js",
+      "types": "./dist/snapshot/index.d.ts"
+    },
+    "./restore": {
+      "import": "./dist/restore/index.js",
+      "types": "./dist/restore/index.d.ts"
+    },
+    "./adapters": {
+      "import": "./dist/adapters/index.js",
+      "types": "./dist/adapters/index.d.ts"
     }
   },
   "scripts": {
-    "build": "rollup -c rollup.config.js",
+    "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "lint": "tsc --noEmit"
   },

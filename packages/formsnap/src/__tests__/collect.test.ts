@@ -7,7 +7,7 @@ import {
   isButtonType,
   extractInfo,
   collectFields,
-} from "../collect.js";
+} from "../dom/collect.js";
 
 let dom: JSDOM;
 let doc: Document;

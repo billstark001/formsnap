@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { JSDOM } from "jsdom";
-import { fillFields, fillElement, nativeSet } from "../fill.js";
+import { fillFields, fillElement, nativeSet } from "../restore/fill.js";
 import type { FieldInfo } from "../types.js";
 
 let dom: JSDOM;

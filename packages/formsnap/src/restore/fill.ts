@@ -1,6 +1,9 @@
-import type { FieldInfo, FillOptions, FillResult } from "./types.js";
+import { analyzeFields } from "../dom/collect.js";
+import { createRestorePlan } from "./match.js";
+import type { FieldInfo, FillOptions, FillResult } from "../types.js";
+import type { FormSnapshot, RestoreOptions } from "../types.js";
 
-const BUTTON_TYPES = new Set(["button", "submit", "reset", "image"]);
+const BUTTON_TYPES = new Set(["button", "submit", "reset", "image", "file"]);
 
 /** Fires input and change events (needed for React/Vue/Angular reactivity). */
 export function fireEvents(el: Element): void {
@@ -33,7 +36,7 @@ export function nativeSet(
 export function findElement(
   info: FieldInfo,
   fallback: boolean,
-  root: Document = document
+  root: Document | Element = document
 ): Element | null {
   let el: Element | null = null;
   try {
@@ -50,7 +53,8 @@ export function findElement(
     if (found) return found;
   }
   if (info.id) {
-    return root.getElementById(info.id);
+    if ("getElementById" in root) return root.getElementById(info.id);
+    return root.querySelector(`#${CSS.escape(info.id)}`);
   }
   return null;
 }
@@ -85,6 +89,7 @@ export function fillElement(
   }
 
   if (info.value != null) {
+    if (tp === "file") return false;
     nativeSet(el as HTMLInputElement, info.value);
     if (doFire) fireEvents(el);
     return true;
@@ -97,7 +102,7 @@ export function fillElement(
 export function fillFields(
   fields: FieldInfo[],
   options: FillOptions = {},
-  root: Document = document
+  root: Document | Element = document
 ): FillResult[] {
   const {
     fireEvents: doFire = true,
@@ -128,5 +133,61 @@ export function fillFields(
     return filled
       ? { selector: info.selector, status: "ok" }
       : { selector: info.selector, status: "fail", reason: "fill-failed" };
+  });
+}
+
+export function restoreSnapshot(
+  snapshot: FormSnapshot | FieldInfo[],
+  options: RestoreOptions = {},
+  root: Document | Element = document
+): FillResult[] {
+  const {
+    fireEvents: doFire = true,
+    fillReadonly = false,
+    fillDisabled = false,
+  } = options;
+  const current = analyzeFields(
+    { includeEmpty: true, includeDisabled: fillReadonly || fillDisabled },
+    root
+  );
+  const plan = createRestorePlan(snapshot, current, options);
+  if (options.dryRun) {
+    return plan.matches.map((match) => ({
+      selector: match.source.selector,
+      targetSelector: match.target.selector,
+      status: "skip",
+      reason: "dry-run",
+      matchConfidence: match.confidence,
+      matchStrategy: match.strategy,
+    }));
+  }
+
+  return plan.matches.map((match): FillResult => {
+    const el = findElement(match.target, false, root);
+    if (!el) {
+      return {
+        selector: match.source.selector,
+        targetSelector: match.target.selector,
+        status: "fail",
+        reason: "target-not-found",
+        matchConfidence: match.confidence,
+        matchStrategy: match.strategy,
+      };
+    }
+    if ((el as HTMLInputElement).disabled && !fillDisabled) {
+      return { selector: match.source.selector, targetSelector: match.target.selector, status: "skip", reason: "disabled", matchConfidence: match.confidence, matchStrategy: match.strategy };
+    }
+    if ((el as HTMLInputElement).readOnly && !fillReadonly) {
+      return { selector: match.source.selector, targetSelector: match.target.selector, status: "skip", reason: "readonly", matchConfidence: match.confidence, matchStrategy: match.strategy };
+    }
+    const filled = fillElement(el, match.source, doFire);
+    return {
+      selector: match.source.selector,
+      targetSelector: match.target.selector,
+      status: filled ? "ok" : "fail",
+      reason: filled ? undefined : "fill-failed",
+      matchConfidence: match.confidence,
+      matchStrategy: match.strategy,
+    };
   });
 }
