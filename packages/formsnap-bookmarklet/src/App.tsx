@@ -1,5 +1,6 @@
 import { useState } from "preact/hooks";
 import { bookmarkletCode, bookmarkletLoaderCode } from "virtual:bookmarklets";
+import { createBookmarkletHref } from "./bookmarklet-url";
 import { useAppI18n } from "./i18n";
 import * as styles from "./styles.css";
 
@@ -21,7 +22,7 @@ function BookmarkletCard({
   copyUrlText: string;
 }) {
   const [copied, setCopied] = useState(false);
-  const href = wrapCode ? `javascript:!function(){${code}}();` : `javascript:${code}`;
+  const href = createBookmarkletHref(code, wrapCode);
 
   const handleCopy = async () => {
     try {
