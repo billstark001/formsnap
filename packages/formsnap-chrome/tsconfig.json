@@ -6,7 +6,12 @@
     "lib": ["ES2020", "DOM"],
     "strict": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "preact"
+    "jsxImportSource": "preact",
+    "types": ["chrome"],
+    "paths": {
+      "formsnap": ["../formsnap/src/index.ts"],
+      "formsnap/*": ["../formsnap/src/*/index.ts"]
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]

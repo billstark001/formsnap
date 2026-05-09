@@ -8,7 +8,8 @@
     "jsx": "react-jsx",
     "jsxImportSource": "preact",
     "paths": {
-      "formsnap": ["../formsnap/src/index.ts"]
+      "formsnap": ["../formsnap/src/index.ts"],
+      "formsnap/*": ["../formsnap/src/*/index.ts"]
     }
   },
   "include": ["src"],

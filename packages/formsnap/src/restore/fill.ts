@@ -1,3 +1,4 @@
+import cssEscape from "css.escape";
 import { analyzeFields } from "../dom/collect.js";
 import { createRestorePlan } from "./match.js";
 import type { FieldInfo, FillOptions, FillResult } from "../types.js";
@@ -49,12 +50,12 @@ export function findElement(
 
   if (info.name) {
     const tag = info.tag ?? "*";
-    const found = root.querySelector(`${tag}[name="${CSS.escape(info.name)}"]`);
+    const found = root.querySelector(`${tag}[name="${cssEscape(info.name)}"]`);
     if (found) return found;
   }
   if (info.id) {
     if ("getElementById" in root) return root.getElementById(info.id);
-    return root.querySelector(`#${CSS.escape(info.id)}`);
+    return root.querySelector(`#${cssEscape(info.id)}`);
   }
   return null;
 }
@@ -152,17 +153,25 @@ export function restoreSnapshot(
   );
   const plan = createRestorePlan(snapshot, current, options);
   if (options.dryRun) {
-    return plan.matches.map((match) => ({
-      selector: match.source.selector,
-      targetSelector: match.target.selector,
-      status: "skip",
-      reason: "dry-run",
-      matchConfidence: match.confidence,
-      matchStrategy: match.strategy,
-    }));
+    return [
+      ...plan.matches.map((match) => ({
+        selector: match.source.selector,
+        targetSelector: match.target.selector,
+        status: "skip" as const,
+        reason: "dry-run",
+        matchConfidence: match.confidence,
+        matchStrategy: match.strategy,
+      })),
+      ...plan.unmatchedSource.map((field) => ({
+        selector: field.selector,
+        status: "fail" as const,
+        reason: "no-match",
+      })),
+    ];
   }
 
-  return plan.matches.map((match): FillResult => {
+  return [
+    ...plan.matches.map((match): FillResult => {
     const el = findElement(match.target, false, root);
     if (!el) {
       return {
@@ -189,5 +198,11 @@ export function restoreSnapshot(
       matchConfidence: match.confidence,
       matchStrategy: match.strategy,
     };
-  });
+    }),
+    ...plan.unmatchedSource.map((field): FillResult => ({
+      selector: field.selector,
+      status: "fail",
+      reason: "no-match",
+    })),
+  ];
 }

@@ -48,11 +48,20 @@
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.0.0",
-    "rollup": "^4.18.0",
-    "typescript": "^5.5.0",
-    "vitest": "^2.0.0",
-    "jsdom": "^24.1.0",
     "@vitest/coverage-v8": "^2.0.0",
-    "tslib": "^2.6.3"
+    "jsdom": "^24.1.0",
+    "rollup": "^4.18.0",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.0",
+    "vitest": "^2.0.0"
+  },
+  "dependencies": {
+    "@medv/finder": "^4.0.2",
+    "css.escape": "^1.5.1",
+    "dom-accessibility-api": "^0.7.1",
+    "ohash": "^2.0.11",
+    "safe-regex2": "^5.1.1",
+    "valibot": "^1.4.0",
+    "yaml": "^2.8.4"
   }
 }

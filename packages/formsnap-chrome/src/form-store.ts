@@ -1,4 +1,4 @@
-import type { FieldInfo } from "formsnap";
+import type { PortableFormSnapshot } from "formsnap";
 
 export interface SavedForm {
   id: string;
@@ -6,7 +6,13 @@ export interface SavedForm {
   title: string;
   timestamp: number;
   note: string;
-  fields: FieldInfo[];
+  snapshot: PortableFormSnapshot;
+  /**
+   * !!! LEGACY COMPATIBILITY ONLY !!!
+   * Old saved records stored raw FieldInfo[] here before versioned snapshots existed.
+   * Keep reading this property for migration/restore, but do not use it for new saves.
+   */
+  fields?: unknown[];
 }
 
 const STORAGE_KEY = "fs-saved-forms";

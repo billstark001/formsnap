@@ -6,6 +6,7 @@ export interface FieldLabelInfo {
     | "wrapped-label"
     | "aria-label"
     | "aria-labelledby"
+    | "accessible-name"
     | "placeholder"
     | "title"
     | "table-header"
@@ -32,10 +33,39 @@ export interface FieldIdentityInfo {
   weakKey?: string;
   formKey?: string;
   structuralPath?: string;
+  sources?: StableIdentitySource[];
   selectorReliability: number;
   idReliability?: number;
   nameReliability?: number;
   evidence: string[];
+}
+
+export type StableIdentitySourceKind =
+  | "stable-key"
+  | "form-key"
+  | "tag-type"
+  | "semantic"
+  | "label"
+  | "repeat-column"
+  | "name-token"
+  | "id-token"
+  | "structural-path"
+  | "autocomplete"
+  | "option-text"
+  | "naive-id";
+
+/** Compact encoded identity fact: one source-kind code plus a stable value hash. */
+export type StableIdentitySource = string;
+
+export type IdentityMatchPresetName = "strict" | "balanced" | "loose";
+
+export interface IdentityMatchPreset {
+  /**
+   * Minimum shared source facts required for the identity-source shortcut.
+   * This replaces the old single stableKey equality shortcut.
+   */
+  minimumSourceMatches: number;
+  score: number;
 }
 
 export interface RepeatGroupInfo {
@@ -103,6 +133,44 @@ export interface FormSnapshot {
   rulesVersion?: string;
 }
 
+export interface PortableSnapshotFieldSource {
+  selector?: string;
+  name?: string;
+  id?: string;
+  label?: string;
+  semantic?: string;
+}
+
+export interface PortableSnapshotField {
+  stableId: string;
+  identitySources: StableIdentitySource[];
+  naiveId?: string;
+  description?: string;
+  type: string;
+  value?: string;
+  selectedText?: string;
+  selectedValues?: Array<{ value: string; text: string }>;
+  checked?: boolean;
+  groupSelectedValue?: string | null;
+  source?: PortableSnapshotFieldSource;
+}
+
+export interface PortableFormSnapshot {
+  version: 3;
+  createdAt: string;
+  form?: Pick<FormSignature, "key" | "fieldCount" | "url" | "host" | "pathname" | "titleText">;
+  fields: PortableSnapshotField[];
+}
+
+export interface PortableSnapshotCaptureOptions {
+  naiveId?: boolean;
+  description?: boolean;
+  source?: boolean;
+}
+
+export type SnapshotTextFormat = "json" | "yaml";
+export type SnapshotTextInputFormat = SnapshotTextFormat | "auto";
+
 /** Options for collecting form fields. */
 export interface CollectOptions {
   /** Include hidden fields (type=hidden, display:none, visibility:hidden). Default: false */
@@ -142,6 +210,8 @@ export interface RestoreOptions extends FillOptions {
   matchStrategy?: "selector-first" | "stable-first" | "semantic-first";
   minMatchConfidence?: number;
   allowWeakMatches?: boolean;
+  identityMatchPreset?: IdentityMatchPresetName;
+  identityMatch?: Partial<IdentityMatchPreset>;
   dryRun?: boolean;
 }
 

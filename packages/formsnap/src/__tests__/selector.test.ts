@@ -25,7 +25,6 @@ describe("getSelector", () => {
     document.body.appendChild(form);
     const sel = getSelector(input);
     expect(sel).toContain("input");
-    expect(sel).toContain("form");
   });
 
   it("uses nth-of-type for siblings", () => {

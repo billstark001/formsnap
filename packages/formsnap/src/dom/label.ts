@@ -1,3 +1,4 @@
+import { computeAccessibleName } from "dom-accessibility-api";
 import { cleanLabelText, elementText, identifierLabel } from "../shared/text.js";
 import type { FieldLabelInfo } from "../types.js";
 
@@ -6,6 +7,7 @@ export const LABEL_SCORES = {
   ariaLabelledBy: 95,
   wrapped: 90,
   ariaLabel: 88,
+  accessibleName: 86,
   tableHeader: 80,
   fieldsetLegend: 68,
   nearby: 58,
@@ -109,6 +111,7 @@ export function detectFieldLabel(el: HTMLInputElement | HTMLTextAreaElement | HT
   const tokenLabel = [identifierLabel(el.name), identifierLabel(el.id)]
     .filter(Boolean)
     .join(" ");
+  const accessibleName = computeAccessibleName(el);
 
   return best([
     candidate(elementText(explicit ?? null), "explicit-label", LABEL_SCORES.explicit, [
@@ -122,6 +125,9 @@ export function detectFieldLabel(el: HTMLInputElement | HTMLTextAreaElement | HT
     ]),
     candidate(el.getAttribute("aria-label") ?? "", "aria-label", LABEL_SCORES.ariaLabel, [
       "aria-label",
+    ]),
+    candidate(accessibleName, "accessible-name", LABEL_SCORES.accessibleName, [
+      "computed accessible name",
     ]),
     tableHeaderLabel(el),
     candidate(legend, "fieldset-legend", LABEL_SCORES.fieldsetLegend, ["fieldset legend"]),

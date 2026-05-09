@@ -1,15 +1,20 @@
 import { render, Fragment } from "preact";
 import { useState } from "preact/hooks";
 import {
-  collectFields as _collectFields,
-  isVisible,
-  isEditable,
-  isButtonType,
-  isEmpty,
-  extractInfo,
-  fillFields,
+  collectSnapshot,
+  parseSnapshotText,
+  restoreSnapshot,
+  stringifySnapshot,
+  toPortableSnapshot,
 } from "formsnap";
-import type { CollectOptions, FieldInfo, FillOptions } from "formsnap";
+import type {
+  AnalyzeOptions,
+  IdentityMatchPresetName,
+  PortableFormSnapshot,
+  RestoreOptions,
+  SnapshotTextFormat,
+  SnapshotTextInputFormat,
+} from "formsnap";
 import { useI18n } from "./i18n";
 import type { Locale } from "./i18n";
 import * as s from "./main.css";
@@ -18,7 +23,7 @@ import * as s from "./main.css";
 
 type CollectorResult =
   | { status: "idle" }
-  | { status: "done"; fields: FieldInfo[] };
+  | { status: "done"; snapshot: PortableFormSnapshot };
 
 function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
   const [includeHidden, setIncludeHidden] = useState(false);
@@ -26,45 +31,44 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
   const [includeButtons, setIncludeButtons] = useState(false);
   const [includeEmpty, setIncludeEmpty] = useState(false);
   const [includeOptions, setIncludeOptions] = useState(false);
+  const [includeNaiveId, setIncludeNaiveId] = useState(true);
+  const [includeDescription, setIncludeDescription] = useState(true);
+  const [includeSource, setIncludeSource] = useState(false);
+  const [exportFormat, setExportFormat] = useState<SnapshotTextFormat>("json");
   const [result, setResult] = useState<CollectorResult>({ status: "idle" });
   const [copied, setCopied] = useState(false);
 
   const handleCollect = () => {
-    const options: CollectOptions = {
+    const options: AnalyzeOptions = {
       includeHidden,
       includeDisabled,
       includeButtons,
       includeEmpty,
       includeOptions,
     };
-    const allEls = Array.from(
-      document.querySelectorAll<
-        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-      >("input,select,textarea")
-    ).filter((el) => !modalEl.contains(el));
+    const sourceSnapshot = collectSnapshot(options, document);
+    sourceSnapshot.fields = sourceSnapshot.fields.filter((field) => {
+      try {
+        const el = document.querySelector(field.selector);
+        return el ? !modalEl.contains(el) : true;
+      } catch {
+        return true;
+      }
+    });
+    if (sourceSnapshot.form) sourceSnapshot.form.fieldCount = sourceSnapshot.fields.length;
+    const snapshot = toPortableSnapshot(sourceSnapshot, {
+      naiveId: includeNaiveId,
+      description: includeDescription,
+      source: includeSource,
+    });
 
-    const collected: FieldInfo[] = [];
-    for (const el of allEls) {
-      if (
-        !options.includeButtons &&
-        el.tagName === "INPUT" &&
-        isButtonType(el as HTMLInputElement)
-      )
-        continue;
-      if (!options.includeHidden && !isVisible(el as HTMLElement)) continue;
-      if (!options.includeDisabled && !isEditable(el as HTMLInputElement))
-        continue;
-      if (!options.includeEmpty && isEmpty(el as HTMLInputElement)) continue;
-      collected.push(extractInfo(el as HTMLInputElement, options.includeOptions));
-    }
-
-    (window as any).__form__ = collected;
-    setResult({ status: "done", fields: collected });
+    (window as any).__form__ = snapshot;
+    setResult({ status: "done", snapshot });
   };
 
   const handleCopy = () => {
     if (result.status !== "done") return;
-    const text = JSON.stringify(result.fields, null, 2);
+    const text = stringifySnapshot(result.snapshot, exportFormat);
     navigator.clipboard?.writeText(text).catch(() => {
       const ta = document.createElement("textarea");
       ta.value = text;
@@ -78,7 +82,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
   };
 
   const json =
-    result.status === "done" ? JSON.stringify(result.fields, null, 2) : "";
+    result.status === "done" ? stringifySnapshot(result.snapshot, exportFormat) : "";
 
   return (
     <Fragment>
@@ -152,6 +156,58 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             <span className={s.checkTitle}>{t.inclEmpty}</span>
           </span>
         </label>
+        <label className={s.checkLabel}>
+          <input
+            type="checkbox"
+            className={s.checkInput}
+            checked={includeNaiveId}
+            onChange={(e) =>
+              setIncludeNaiveId((e.target as HTMLInputElement).checked)
+            }
+          />
+          <span>
+            <span className={s.checkTitle}>{t.inclNaiveId}</span>
+          </span>
+        </label>
+        <label className={s.checkLabel}>
+          <input
+            type="checkbox"
+            className={s.checkInput}
+            checked={includeDescription}
+            onChange={(e) =>
+              setIncludeDescription((e.target as HTMLInputElement).checked)
+            }
+          />
+          <span>
+            <span className={s.checkTitle}>{t.inclDescription}</span>
+          </span>
+        </label>
+        <label className={s.checkLabel}>
+          <input
+            type="checkbox"
+            className={s.checkInput}
+            checked={includeSource}
+            onChange={(e) =>
+              setIncludeSource((e.target as HTMLInputElement).checked)
+            }
+          />
+          <span>
+            <span className={s.checkTitle}>{t.inclSource}</span>
+            <span className={s.checkHint}>{t.inclSourceHint}</span>
+          </span>
+        </label>
+        <label className={s.checkLabel}>
+          <span className={s.checkTitle}>{t.exportFormat}</span>
+          <select
+            value={exportFormat}
+            onChange={(e) =>
+              setExportFormat((e.target as HTMLSelectElement).value as SnapshotTextFormat)
+            }
+          >
+            <option value="json">JSON</option>
+            <option value="yaml">YAML</option>
+          </select>
+        </label>
       </div>
 
       <button
@@ -164,7 +220,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
       {result.status === "done" && (
         <div className={s.resultSection}>
           <div className={`${s.banner} ${s.bannerGreen}`}>
-            {t.collectDone(result.fields.length)}
+            {t.collectDone(result.snapshot.fields.length)}
           </div>
           <textarea
             readOnly
@@ -194,30 +250,41 @@ type FillResult =
   | { status: "error"; msg: string };
 
 function FillerTab({ t }: { t: Locale }) {
-  const initialData = Array.isArray((window as any).__form__)
+  const initialData = (window as any).__form__
     ? JSON.stringify((window as any).__form__, null, 2)
     : "";
   const hasWindowData = initialData.length > 0;
 
   const [jsonText, setJsonText] = useState(initialData);
+  const [importFormat, setImportFormat] = useState<SnapshotTextInputFormat>("auto");
   const [fireEvents, setFireEvents] = useState(true);
   const [fallbackMatch, setFallbackMatch] = useState(true);
   const [fillReadonly, setFillReadonly] = useState(false);
   const [fillDisabled, setFillDisabled] = useState(false);
+  const [identityMatchPreset, setIdentityMatchPreset] = useState<IdentityMatchPresetName>("balanced");
+  const [identitySourceThreshold, setIdentitySourceThreshold] = useState("default");
+  const [minMatchConfidence, setMinMatchConfidence] = useState("default");
   const [fillResult, setFillResult] = useState<FillResult>({ status: "idle" });
 
   const handleFill = () => {
     const src = jsonText.trim();
-    const options: FillOptions = {
+    const options: RestoreOptions = {
       fireEvents,
       fallbackMatch,
       fillReadonly,
       fillDisabled,
+      identityMatchPreset,
+      ...(identitySourceThreshold === "default"
+        ? {}
+        : { identityMatch: { minimumSourceMatches: Number(identitySourceThreshold) } }),
+      ...(minMatchConfidence === "default"
+        ? {}
+        : { minMatchConfidence: Number(minMatchConfidence) }),
     };
 
-    let fields: FieldInfo[];
+    let snapshot;
     try {
-      fields = JSON.parse(src);
+      snapshot = parseSnapshotText(src, importFormat);
     } catch (e) {
       setFillResult({
         status: "error",
@@ -225,12 +292,8 @@ function FillerTab({ t }: { t: Locale }) {
       });
       return;
     }
-    if (!Array.isArray(fields)) {
-      setFillResult({ status: "error", msg: t.jsonNotArray });
-      return;
-    }
 
-    const results = fillFields(fields, options);
+    const results = restoreSnapshot(snapshot, options);
     const ok = results.filter((r) => r.status === "ok").length;
     const skip = results.filter((r) => r.status === "skip").length;
     const fail = results.filter((r) => r.status === "fail").length;
@@ -249,7 +312,7 @@ function FillerTab({ t }: { t: Locale }) {
         className={`${s.banner} ${hasWindowData ? s.bannerGreen : s.bannerYellow}`}
       >
         {hasWindowData
-          ? t.windowFormFound((window as any).__form__.length)
+          ? t.windowFormFound(((window as any).__form__.fields ?? (window as any).__form__).length)
           : t.windowFormMissing}
       </div>
 
@@ -284,6 +347,43 @@ function FillerTab({ t }: { t: Locale }) {
           </span>
         </label>
         <label className={s.checkLabel}>
+          <span className={s.checkTitle}>{t.identityPreset}</span>
+          <select
+            value={identityMatchPreset}
+            onChange={(e) =>
+              setIdentityMatchPreset((e.target as HTMLSelectElement).value as IdentityMatchPresetName)
+            }
+          >
+            <option value="strict">{t.identityStrict}</option>
+            <option value="balanced">{t.identityBalanced}</option>
+            <option value="loose">{t.identityLoose}</option>
+          </select>
+        </label>
+        <label className={s.checkLabel}>
+          <span className={s.checkTitle}>{t.minConfidence}</span>
+          <select
+            value={minMatchConfidence}
+            onChange={(e) => setMinMatchConfidence((e.target as HTMLSelectElement).value)}
+          >
+            <option value="default">{t.confidenceDefault}</option>
+            <option value="0.35">{t.confidenceWeak}</option>
+            <option value="0.55">{t.confidenceStandard}</option>
+            <option value="0.7">{t.confidenceHigh}</option>
+          </select>
+        </label>
+        <label className={s.checkLabel}>
+          <span className={s.checkTitle}>{t.sourceThreshold}</span>
+          <select
+            value={identitySourceThreshold}
+            onChange={(e) => setIdentitySourceThreshold((e.target as HTMLSelectElement).value)}
+          >
+            <option value="default">{t.sourceThresholdDefault}</option>
+            <option value="2">{t.sourceThresholdTwo}</option>
+            <option value="3">{t.sourceThresholdThree}</option>
+            <option value="5">{t.sourceThresholdFive}</option>
+          </select>
+        </label>
+        <label className={s.checkLabel}>
           <input
             type="checkbox"
             className={s.checkInput}
@@ -313,11 +413,24 @@ function FillerTab({ t }: { t: Locale }) {
 
       <div>
         <div className={s.sectionHeader}>
-          <span className={s.sectionTitle}>{t.jsonData}</span>
+          <span className={s.sectionTitle}>{t.importData}</span>
           <button className={s.smallBtn} onClick={() => setJsonText("")}>
             {t.clear}
           </button>
         </div>
+        <label className={s.checkLabel}>
+          <span className={s.checkTitle}>{t.importFormat}</span>
+          <select
+            value={importFormat}
+            onChange={(e) =>
+              setImportFormat((e.target as HTMLSelectElement).value as SnapshotTextInputFormat)
+            }
+          >
+            <option value="auto">{t.formatAuto}</option>
+            <option value="json">JSON</option>
+            <option value="yaml">YAML</option>
+          </select>
+        </label>
         <textarea
           className={s.textarea}
           style={{ height: 180 }}

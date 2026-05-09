@@ -1,3 +1,5 @@
+import safeRegex from "safe-regex2";
+import * as v from "valibot";
 import { normalizeText } from "../shared/text.js";
 import type {
   FieldInfo,
@@ -32,16 +34,9 @@ export const defaultHeuristicRules: HeuristicRuleSet = {
   ],
 };
 
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function isRegExpLike(value: unknown): value is RegExpLike {
-  return isObject(value) && typeof value.pattern === "string";
-}
-
 function safeRegExp(value: RegExpLike): RegExp | null {
   try {
+    if (!safeRegex(value.pattern)) return null;
     return new RegExp(value.pattern, value.flags);
   } catch {
     return null;
@@ -57,12 +52,13 @@ function matches(value: string | undefined, matcher: string | RegExpLike | undef
 }
 
 export function normalizeRuleSet(input: unknown): HeuristicRuleSet {
-  if (!isObject(input) || !Array.isArray(input.rules)) {
+  const parsed = v.safeParse(ruleSetSchema, input);
+  if (!parsed.success) {
     throw new Error("Invalid heuristic rule set");
   }
+  const inputRuleSet = parsed.output;
   const rules: HeuristicRule[] = [];
-  for (const rule of input.rules) {
-    if (!isObject(rule) || typeof rule.id !== "string" || !isObject(rule.match) || !isObject(rule.action)) continue;
+  for (const rule of inputRuleSet.rules) {
     const scope = rule.scope === "site" || rule.scope === "form" || rule.scope === "component" ? rule.scope : "global";
     rules.push({
       id: rule.id,
@@ -70,14 +66,14 @@ export function normalizeRuleSet(input: unknown): HeuristicRuleSet {
       scope,
       priority: typeof rule.priority === "number" ? rule.priority : 0,
       confidence: typeof rule.confidence === "number" ? rule.confidence : 0.75,
-      match: rule.match,
-      action: rule.action,
+      match: rule.match as HeuristicRule["match"],
+      action: rule.action as HeuristicRule["action"],
       notes: typeof rule.notes === "string" ? rule.notes : undefined,
-    } as HeuristicRule);
+    });
   }
   return {
-    version: typeof input.version === "string" ? input.version : "unknown",
-    updatedAt: typeof input.updatedAt === "string" ? input.updatedAt : undefined,
+    version: inputRuleSet.version,
+    updatedAt: inputRuleSet.updatedAt,
     rules,
   };
 }
@@ -180,3 +176,61 @@ export async function fetchHeuristicRuleSet(
     if (timeout) clearTimeout(timeout);
   }
 }
+
+const regExpLikeSchema = v.object({
+  pattern: v.string(),
+  flags: v.optional(v.string()),
+});
+
+const stringMatcherSchema = v.union([v.string(), regExpLikeSchema]);
+
+const matcherSchema = v.object({
+  host: v.optional(stringMatcherSchema),
+  pathname: v.optional(stringMatcherSchema),
+  selector: v.optional(v.string()),
+  tag: v.optional(v.string()),
+  type: v.optional(v.string()),
+  name: v.optional(stringMatcherSchema),
+  id: v.optional(stringMatcherSchema),
+  label: v.optional(stringMatcherSchema),
+  placeholder: v.optional(stringMatcherSchema),
+  autocomplete: v.optional(stringMatcherSchema),
+  text: v.optional(stringMatcherSchema),
+  attributes: v.optional(v.record(v.string(), stringMatcherSchema)),
+  ancestorText: v.optional(stringMatcherSchema),
+  repeat: v.optional(v.object({
+    colIndex: v.optional(v.number()),
+    fieldIndex: v.optional(v.number()),
+    groupLabel: v.optional(stringMatcherSchema),
+  })),
+});
+
+const actionSchema = v.object({
+  semanticSlot: v.optional(v.string()),
+  label: v.optional(v.string()),
+  representation: v.optional(v.string()),
+  adapter: v.optional(v.string()),
+  stableKeyHint: v.optional(v.string()),
+});
+
+const ruleSchema = v.object({
+  id: v.string(),
+  version: v.optional(v.number()),
+  scope: v.optional(v.union([
+    v.literal("global"),
+    v.literal("site"),
+    v.literal("form"),
+    v.literal("component"),
+  ])),
+  priority: v.optional(v.number()),
+  confidence: v.optional(v.number()),
+  match: matcherSchema,
+  action: actionSchema,
+  notes: v.optional(v.string()),
+});
+
+const ruleSetSchema = v.object({
+  version: v.optional(v.string(), "unknown"),
+  updatedAt: v.optional(v.string()),
+  rules: v.array(ruleSchema),
+});

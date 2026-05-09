@@ -4,10 +4,17 @@
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "lint": "pnpm -r lint"
+    "lint": "pnpm run lint:types && pnpm run lint:biome",
+    "lint:types": "pnpm -r lint",
+    "lint:biome": "biome lint .",
+    "format": "biome format --write .",
+    "format:check": "biome format ."
   },
   "engines": {
     "node": ">=18",
     "pnpm": ">=9"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.14"
   }
 }

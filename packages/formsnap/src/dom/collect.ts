@@ -1,5 +1,7 @@
+import cssEscape from "css.escape";
 import { getSelector } from "./selector.js";
 import { stableHash } from "../shared/hash.js";
+import { createNaiveId, uniqueIdentitySources } from "../shared/identity.js";
 import { detectFieldLabel } from "./label.js";
 import { detectRepeatGroups } from "../analysis/repeat.js";
 import { applyHeuristicRules, defaultHeuristicRules, mergeRuleSets } from "../rules/rules.js";
@@ -98,7 +100,7 @@ export function extractInfo(
     info.checked = inp.checked;
     if (type === "radio" && inp.name) {
       const checked = document.querySelector<HTMLInputElement>(
-        `input[type="radio"][name="${CSS.escape(inp.name)}"]:checked`
+        `input[type="radio"][name="${cssEscape(inp.name)}"]:checked`
       );
       info.groupSelectedValue = checked ? checked.value : null;
     }
@@ -128,6 +130,9 @@ function enrichIdentity(info: FieldInfo): void {
   const optionTextHash = info.options?.length
     ? stableHash(info.options.map((option) => option.text))
     : undefined;
+  const repeatColumn = info.repeat
+    ? `${info.repeat.groupKey}:${info.repeat.colIndex ?? info.repeat.fieldIndex}`
+    : undefined;
   const stableKey = stableHash([
     "v2",
     info.identity.formKey,
@@ -145,6 +150,26 @@ function enrichIdentity(info: FieldInfo): void {
   ]);
   info.identity.stableKey = `fs_${stableKey}`;
   info.identity.weakKey = `fw_${stableHash([info.tag, info.type, info.semantic?.slot, label, stableNameTokens])}`;
+  info.identity.sources = uniqueIdentitySources([
+    { kind: "stable-key", value: info.identity.stableKey },
+    info.identity.formKey ? { kind: "form-key", value: info.identity.formKey } : undefined,
+    { kind: "tag-type", value: `${info.tag}:${info.type ?? ""}` },
+    info.semantic?.slot && info.semantic.slot !== "unknown"
+      ? { kind: "semantic", value: info.semantic.slot }
+      : undefined,
+    label ? { kind: "label", value: label } : undefined,
+    repeatColumn ? { kind: "repeat-column", value: repeatColumn } : undefined,
+    ...stableNameTokens.map((value) => ({ kind: "name-token" as const, value })),
+    ...stableIdTokens.map((value) => ({ kind: "id-token" as const, value })),
+    info.identity.structuralPath
+      ? { kind: "structural-path", value: info.identity.structuralPath }
+      : undefined,
+    typeof info.debug?.autocomplete === "string"
+      ? { kind: "autocomplete", value: info.debug.autocomplete }
+      : undefined,
+    optionTextHash ? { kind: "option-text", value: optionTextHash } : undefined,
+    { kind: "naive-id", value: createNaiveId(info) },
+  ]);
   info.identity.evidence.push("stable key includes label/semantic/repeat/structure");
 }
 

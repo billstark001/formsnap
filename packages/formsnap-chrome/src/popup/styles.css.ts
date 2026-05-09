@@ -86,6 +86,24 @@ export const checkSubLabel = style({
   fontSize: 12,
 });
 
+export const selectLabel = style({
+  display: "flex",
+  justifyContent: "space-between",
+  gap: 8,
+  alignItems: "center",
+  marginTop: 8,
+  fontSize: 13,
+});
+
+export const selectInput = style({
+  minWidth: 110,
+  border: `1px solid ${themeVars.border}`,
+  borderRadius: 4,
+  background: themeVars.bgInput,
+  color: themeVars.text,
+  padding: "4px 6px",
+});
+
 export const collectBtn = style({
   display: "block",
   width: "100%",

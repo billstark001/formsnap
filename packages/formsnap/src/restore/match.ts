@@ -1,5 +1,12 @@
 import { normalizeText, tokenOverlap, tokenizeIdentifier } from "../shared/text.js";
-import type { FieldInfo, FieldMatch, RestoreOptions, RestorePlan } from "../types.js";
+import type {
+  FieldInfo,
+  FieldMatch,
+  IdentityMatchPreset,
+  IdentityMatchPresetName,
+  RestoreOptions,
+  RestorePlan,
+} from "../types.js";
 
 function same(a: unknown, b: unknown): boolean {
   return a !== undefined && b !== undefined && a === b;
@@ -9,7 +16,27 @@ function selectorLooksNth(selector: string): boolean {
   return /nth-of-type/.test(selector) && !/#/.test(selector);
 }
 
-export function scoreFieldMatch(source: FieldInfo, target: FieldInfo): FieldMatch {
+export const identityMatchPresets: Record<IdentityMatchPresetName, IdentityMatchPreset> = {
+  strict: { minimumSourceMatches: 5, score: 100 },
+  balanced: { minimumSourceMatches: 3, score: 85 },
+  loose: { minimumSourceMatches: 2, score: 70 },
+};
+
+function identityPreset(options: RestoreOptions): IdentityMatchPreset {
+  const base = identityMatchPresets[options.identityMatchPreset ?? "balanced"];
+  return { ...base, ...options.identityMatch };
+}
+
+function matchingIdentitySources(source: FieldInfo, target: FieldInfo): string[] {
+  const targetSources = new Set(target.identity?.sources ?? []);
+  return (source.identity?.sources ?? []).filter((item) => targetSources.has(item));
+}
+
+export function scoreFieldMatch(
+  source: FieldInfo,
+  target: FieldInfo,
+  options: RestoreOptions = {}
+): FieldMatch {
   let score = 0;
   const evidence: string[] = [];
   const add = (points: number, reason: string) => {
@@ -17,6 +44,14 @@ export function scoreFieldMatch(source: FieldInfo, target: FieldInfo): FieldMatc
     evidence.push(`${reason} +${points}`);
   };
 
+  const preset = identityPreset(options);
+  const identityMatches = matchingIdentitySources(source, target);
+  if (identityMatches.length >= preset.minimumSourceMatches) {
+    add(
+      preset.score,
+      `same identity sources (${identityMatches.length}/${preset.minimumSourceMatches})`
+    );
+  }
   if (same(source.identity?.stableKey, target.identity?.stableKey)) add(100, "same stableKey");
   if (
     source.selector === target.selector &&
@@ -71,7 +106,7 @@ export function matchFields(
   const candidates: FieldMatch[] = [];
   for (const source of sourceFields) {
     for (const target of targetFields) {
-      const match = scoreFieldMatch(source, target);
+      const match = scoreFieldMatch(source, target, options);
       if (match.confidence >= min) candidates.push(match);
     }
   }

@@ -12,6 +12,7 @@ import {
   normalizeRuleSet,
   restoreSnapshot,
   applyHeuristicRules,
+  encodeIdentitySource,
 } from "../index.js";
 import type { FieldInfo, HeuristicRuleSet } from "../types.js";
 
@@ -153,6 +154,47 @@ describe("dynamic identity and matching", () => {
     expect(weak.matches[0]?.confidence ?? 0).toBeLessThanOrEqual(0.3);
   });
 
+  it("matches fields when enough stable identity sources overlap", () => {
+    const source: FieldInfo = {
+      selector: "#old",
+      tag: "input",
+      type: "email",
+      visible: true,
+      identity: {
+        stableKey: "fs_old",
+        selectorReliability: 20,
+        evidence: [],
+        sources: [
+          encodeIdentitySource("semantic", "email"),
+          encodeIdentitySource("label", "email"),
+          encodeIdentitySource("name-token", "user"),
+          encodeIdentitySource("naive-id", "email"),
+        ],
+      },
+    };
+    const target: FieldInfo = {
+      selector: "#new",
+      tag: "input",
+      type: "email",
+      visible: true,
+      identity: {
+        stableKey: "fs_new",
+        selectorReliability: 20,
+        evidence: [],
+        sources: [
+          encodeIdentitySource("semantic", "email"),
+          encodeIdentitySource("label", "email"),
+          encodeIdentitySource("name-token", "user"),
+          encodeIdentitySource("naive-id", "email"),
+        ],
+      },
+    };
+
+    const plan = matchFields([source], [target], { identityMatchPreset: "balanced" });
+    expect(plan.matches[0].confidence).toBeGreaterThanOrEqual(0.85);
+    expect(plan.matches[0].strategy).toMatch(/identity sources/);
+  });
+
   it("restores when an nth-of-type path is shifted by inserted markup", () => {
     setup(`<form><label>Email<input value="a@b.test"></label></form>`);
     const snapshot = collectSnapshot({ includeEmpty: true }, doc);
@@ -160,6 +202,16 @@ describe("dynamic identity and matching", () => {
     const results = restoreSnapshot(snapshot, { allowWeakMatches: true }, doc);
     expect(results[0].status).toBe("ok");
     expect((doc.querySelector("input") as HTMLInputElement).value).toBe("a@b.test");
+  });
+
+  it("reports unmatched snapshot fields as failures", () => {
+    setup(`<form><label>Email<input value="a@b.test"></label></form>`);
+    const snapshot = collectSnapshot({ includeEmpty: true }, doc);
+    setup(`<form></form>`);
+    const results = restoreSnapshot(snapshot, {}, doc);
+    expect(results).toEqual([
+      expect.objectContaining({ status: "fail", reason: "no-match" }),
+    ]);
   });
 });
 

@@ -1,4 +1,7 @@
+import cssEscape from "css.escape";
+import { finder, attr, className, idName } from "@medv/finder";
 import { stableHash } from "../shared/hash.js";
+import { uniqueIdentitySources } from "../shared/identity.js";
 import { looksDynamicToken, tokenizeIdentifier } from "../shared/text.js";
 import type { FieldContext, FieldIdentityInfo, StableSelectorOptions } from "../types.js";
 
@@ -7,39 +10,92 @@ import type { FieldContext, FieldIdentityInfo, StableSelectorOptions } from "../
  * Prefers id-based selectors; falls back to nth-of-type path.
  */
 export function getSelector(el: Element): string {
-  if (el.id) return "#" + el.id;
+  if (el.id && !looksDynamicToken(el.id)) return `#${cssEscape(el.id)}`;
+  if (isExpensiveSelectorSearch(el)) return getSimpleSelector(el);
+  installFinderGlobals(el);
+  try {
+    return finder(el, {
+      root: el.ownerDocument.body,
+      timeoutMs: 25,
+      seedMinLength: 1,
+      optimizedMinLength: 1,
+      maxNumberOfPathChecks: 200,
+      idName: (value) => idName(value) && !looksDynamicToken(value),
+      className: (value) => className(value) && !looksDynamicToken(value),
+      attr: (name, value) =>
+        attr(name, value) && /^(aria-label|autocomplete|name|type)$/i.test(name),
+    });
+  } catch {
+    // Some production pages have deep/generated DOMs that make selector search
+    // explode combinatorially. Filling must continue, so use a linear fallback.
+    return getSimpleSelector(el);
+  }
+}
 
+export { looksDynamicToken };
+
+function installFinderGlobals(el: Element): void {
+  const view = el.ownerDocument.defaultView;
+  // @medv/finder reads browser globals while building defaults. Browsers already
+  // provide them; jsdom unit tests often keep them only on ownerDocument.defaultView.
+  if (!globalThis.document) {
+    Object.defineProperty(globalThis, "document", {
+      configurable: true,
+      value: el.ownerDocument,
+    });
+  }
+  if (!globalThis.Node && view?.Node) {
+    Object.defineProperty(globalThis, "Node", {
+      configurable: true,
+      value: view.Node,
+    });
+  }
+  if (!globalThis.CSS && view?.CSS) {
+    Object.defineProperty(globalThis, "CSS", {
+      configurable: true,
+      value: view.CSS,
+    });
+  }
+}
+
+function getSimpleSelector(el: Element): string {
   const parts: string[] = [];
   let node: Element | null = el;
 
-  while (node && node.nodeType === 1) {
-    let seg = node.nodeName.toLowerCase();
-
-    if (node.id) {
-      seg += "#" + node.id;
+  while (node && node.nodeType === 1 && node.tagName.toLowerCase() !== "html") {
+    let seg = node.tagName.toLowerCase();
+    if (node.id && !looksDynamicToken(node.id)) {
+      seg += `#${cssEscape(node.id)}`;
       parts.unshift(seg);
       break;
     }
 
-    let sib: Element | null = node;
-    let nth = 1;
-    while ((sib = sib.previousElementSibling)) {
-      if (sib.nodeName.toLowerCase() === seg) nth++;
+    const current: Element = node;
+    const parent: Element | null = current.parentElement;
+    if (parent) {
+      const sameTag = Array.from(parent.children).filter(
+        (child) => child.tagName === current.tagName
+      );
+      if (sameTag.length > 1) seg += `:nth-of-type(${sameTag.indexOf(current) + 1})`;
     }
-    if (nth > 1) seg += `:nth-of-type(${nth})`;
-
     parts.unshift(seg);
-    node = node.parentElement;
+    node = parent;
   }
 
   return parts.join(" > ");
 }
 
-export { looksDynamicToken };
-
-function cssEscape(value: string): string {
-  if (globalThis.CSS?.escape) return globalThis.CSS.escape(value);
-  return value.replace(/([!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~])/g, "\\$1");
+function isExpensiveSelectorSearch(el: Element): boolean {
+  let depth = 0;
+  let branchCost = 0;
+  let node: Element | null = el;
+  while (node && node.tagName.toLowerCase() !== "html") {
+    depth++;
+    branchCost += node.parentElement?.children.length ?? 0;
+    if (depth > 16 || branchCost > 180) return true;
+    node = node.parentElement;
+  }
+  return false;
 }
 
 export function getSelectorReliability(el: Element): number {
@@ -129,6 +185,14 @@ export function getFieldIdentity(
     weakKey: `fw_${stableHash([tag, type, nameTokens, idTokens])}`,
     formKey: context.formKey,
     structuralPath,
+    sources: uniqueIdentitySources([
+      { kind: "stable-key", value: `fs_${stableHash(keyParts)}` },
+      context.formKey ? { kind: "form-key", value: context.formKey } : undefined,
+      { kind: "tag-type", value: `${tag}:${type}` },
+      ...nameTokens.map((value) => ({ kind: "name-token" as const, value })),
+      ...idTokens.map((value) => ({ kind: "id-token" as const, value })),
+      structuralPath ? { kind: "structural-path", value: structuralPath } : undefined,
+    ]),
     selectorReliability,
     idReliability,
     nameReliability,
