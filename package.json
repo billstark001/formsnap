@@ -11,8 +11,8 @@
     "format:check": "biome format ."
   },
   "engines": {
-    "node": ">=18",
-    "pnpm": ">=9"
+    "node": ">=22",
+    "pnpm": ">=10"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.14"

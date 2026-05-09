@@ -15,10 +15,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter formsnap build
@@ -26,16 +26,17 @@ jobs:
       - name: Zip extension
         run: |
           cd packages/formsnap-chrome/dist
-          zip -r ../../../formsnap-chrome.zip .
+          zip -r "${{ github.workspace }}/formsnap-chrome.zip" .
       - uses: actions/upload-artifact@v4
         with:
           name: formsnap-chrome
-          path: formsnap-chrome.zip
+          path: ${{ github.workspace }}/formsnap-chrome.zip
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: formsnap-chrome.zip
+          files: ${{ github.workspace }}/formsnap-chrome.zip
+          token: ${{ secrets.GITHUB_TOKEN }}
         # Note: Chrome Web Store publishing requires CWS_CLIENT_ID,
         # CWS_CLIENT_SECRET, CWS_REFRESH_TOKEN, and CWS_EXTENSION_ID secrets.
         # See the "Chrome Web Store publishing" section in README.md for setup instructions.
