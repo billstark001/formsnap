@@ -31,7 +31,9 @@ function setup(html: string): Document {
   (global as any).HTMLInputElement = dom.window.HTMLInputElement;
   (global as any).HTMLTextAreaElement = dom.window.HTMLTextAreaElement;
   (global as any).Event = dom.window.Event;
-  (global as any).CSS = { escape: (s: string) => s.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1") };
+  (global as any).CSS = {
+    escape: (s: string) => s.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1"),
+  };
   return doc;
 }
 
@@ -132,7 +134,9 @@ describe("repeat groups", () => {
 
 describe("dynamic identity and matching", () => {
   it("detects dynamic tokens and lowers selector reliability", () => {
-    setup(`<input id="550e8400-e29b-41d4-a716-446655440000" value="x"><input id="email" value="a@b.test">`);
+    setup(
+      `<input id="550e8400-e29b-41d4-a716-446655440000" value="x"><input id="email" value="a@b.test">`,
+    );
     const fields = Array.from(doc.querySelectorAll("input"));
     expect(looksDynamicToken(fields[0].id)).toBe(true);
     expect(getSelectorReliability(fields[0])).toBeLessThan(50);
@@ -149,7 +153,7 @@ describe("dynamic identity and matching", () => {
 
     const weak = matchFields(
       [{ selector: "#session_12345", tag: "input", id: "session_12345", visible: true }],
-      [{ selector: "#session_12345", tag: "input", id: "session_12345", visible: true }]
+      [{ selector: "#session_12345", tag: "input", id: "session_12345", visible: true }],
     );
     expect(weak.matches[0]?.confidence ?? 0).toBeLessThanOrEqual(0.3);
   });
@@ -209,9 +213,7 @@ describe("dynamic identity and matching", () => {
     const snapshot = collectSnapshot({ includeEmpty: true }, doc);
     setup(`<form></form>`);
     const results = restoreSnapshot(snapshot, {}, doc);
-    expect(results).toEqual([
-      expect.objectContaining({ status: "fail", reason: "no-match" }),
-    ]);
+    expect(results).toEqual([expect.objectContaining({ status: "fail", reason: "no-match" })]);
   });
 });
 
@@ -246,9 +248,14 @@ describe("rule engine", () => {
 
   it("fetches and validates a remote rule set", async () => {
     const payload: HeuristicRuleSet = { version: "r1", rules: [] };
-    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => payload })));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => ({ ok: true, json: async () => payload })),
+    );
     const mod = await import("../rules/index.js");
-    await expect(mod.fetchHeuristicRuleSet("https://rules.test/formsnap.json")).resolves.toEqual(payload);
+    await expect(mod.fetchHeuristicRuleSet("https://rules.test/formsnap.json")).resolves.toEqual(
+      payload,
+    );
     vi.unstubAllGlobals();
   });
 });

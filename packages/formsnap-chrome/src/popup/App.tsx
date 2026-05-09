@@ -4,11 +4,7 @@ import { useI18n } from "./i18n";
 import type { Lang } from "./i18n";
 import { saveForm, loadSavedForms, deleteForm } from "../form-store";
 import type { SavedForm } from "../form-store";
-import {
-  parseSnapshotText,
-  stringifySnapshot,
-  toPortableSnapshot,
-} from "formsnap";
+import { parseSnapshotText, stringifySnapshot, toPortableSnapshot } from "formsnap";
 import type {
   FormSnapshot,
   IdentityMatchPresetName,
@@ -73,7 +69,8 @@ export default function App({ initialLang }: { initialLang: Lang }) {
   const [doFallback, setDoFallback] = useState(true);
   const [fillReadonly, setFillReadonly] = useState(false);
   const [fillDisabled, setFillDisabled] = useState(false);
-  const [identityMatchPreset, setIdentityMatchPreset] = useState<IdentityMatchPresetName>("balanced");
+  const [identityMatchPreset, setIdentityMatchPreset] =
+    useState<IdentityMatchPresetName>("balanced");
   const [identitySourceThreshold, setIdentitySourceThreshold] = useState("default");
   const [minMatchConfidence, setMinMatchConfidence] = useState("default");
   const [importFormat, setImportFormat] = useState<SnapshotTextInputFormat>("auto");
@@ -101,7 +98,7 @@ export default function App({ initialLang }: { initialLang: Lang }) {
           naiveId: incNaiveId,
           description: incDescription,
           source: incSource,
-        })
+        }),
       );
     } catch (e) {
       setError((e as Error).message);
@@ -121,7 +118,7 @@ export default function App({ initialLang }: { initialLang: Lang }) {
       } catch (error) {
         throw new Error((error as Error).message);
       }
-      const res = await sendMessage("fill", {
+      const res = (await sendMessage("fill", {
         snapshot,
         options: {
           fireEvents: doFire,
@@ -136,7 +133,7 @@ export default function App({ initialLang }: { initialLang: Lang }) {
             ? {}
             : { minMatchConfidence: Number(minMatchConfidence) }),
         },
-      }) as ResultItem[] | { error: string };
+      })) as ResultItem[] | { error: string };
       if (!Array.isArray(res)) throw new Error(res.error);
       setResults(res);
     } catch (e) {
@@ -181,7 +178,7 @@ export default function App({ initialLang }: { initialLang: Lang }) {
     label: string,
     subLabel: string,
     checked: boolean,
-    onChange: (v: boolean) => void
+    onChange: (v: boolean) => void,
   ) => (
     <label className={styles.checkLabel}>
       <input
@@ -208,12 +205,12 @@ export default function App({ initialLang }: { initialLang: Lang }) {
       const current = new URL(currentUrl);
       const saved = new URL(f.url);
       return saved.origin + saved.pathname === current.origin + current.pathname;
-    } catch { return false; }
+    } catch {
+      return false;
+    }
   });
 
-  const collectedText = collectedSnapshot
-    ? stringifySnapshot(collectedSnapshot, exportFormat)
-    : "";
+  const collectedText = collectedSnapshot ? stringifySnapshot(collectedSnapshot, exportFormat) : "";
 
   return (
     <div className={styles.container}>
@@ -238,11 +235,7 @@ export default function App({ initialLang }: { initialLang: Lang }) {
           >
             {t.tabSaved}
           </button>
-          <button
-            className={styles.iconBtn}
-            onClick={openSettings}
-            title={t.settings}
-          >
+          <button className={styles.iconBtn} onClick={openSettings} title={t.settings}>
             ⚙️
           </button>
         </div>
@@ -314,7 +307,9 @@ export default function App({ initialLang }: { initialLang: Lang }) {
               <select
                 value={identityMatchPreset}
                 onChange={(e) =>
-                  setIdentityMatchPreset((e.target as HTMLSelectElement).value as IdentityMatchPresetName)
+                  setIdentityMatchPreset(
+                    (e.target as HTMLSelectElement).value as IdentityMatchPresetName,
+                  )
                 }
                 className={styles.selectInput}
               >
@@ -393,9 +388,7 @@ export default function App({ initialLang }: { initialLang: Lang }) {
 
       {tab === "saved" && (
         <div>
-          <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 13 }}>
-            {t.savedFormsTitle}
-          </div>
+          <div style={{ fontWeight: 600, marginBottom: 8, fontSize: 13 }}>{t.savedFormsTitle}</div>
           {formsForPage.length === 0 ? (
             <div className={styles.emptyMsg}>{t.noSavedForms}</div>
           ) : (
@@ -403,7 +396,8 @@ export default function App({ initialLang }: { initialLang: Lang }) {
               {formsForPage.map((form) => (
                 <div key={form.id} className={styles.savedCard}>
                   <div className={styles.savedMeta}>
-                    {new Date(form.timestamp).toLocaleString()} · {t.fieldsCount((form.snapshot?.fields ?? form.fields ?? []).length)}
+                    {new Date(form.timestamp).toLocaleString()} ·{" "}
+                    {t.fieldsCount((form.snapshot?.fields ?? form.fields ?? []).length)}
                     {form.title && ` · ${form.title}`}
                   </div>
                   {form.note && <div className={styles.savedNote}>"{form.note}"</div>}

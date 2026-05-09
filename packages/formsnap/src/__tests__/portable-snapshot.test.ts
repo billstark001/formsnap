@@ -76,7 +76,9 @@ describe("portable snapshot format", () => {
 
     expect(fromJson.fields[0].identity?.stableKey).toBe("fs_email");
     expect(fromYaml.fields[0].identity?.stableKey).toBe("fs_email");
-    expect(fromJson.fields[0].identity?.sources?.every((source) => typeof source === "string")).toBe(true);
+    expect(
+      fromJson.fields[0].identity?.sources?.every((source) => typeof source === "string"),
+    ).toBe(true);
     expect(fromPortableSnapshot(portable).fields[0].selector).toBe("#email");
   });
 

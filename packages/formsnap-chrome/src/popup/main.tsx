@@ -5,7 +5,6 @@ import { lightTheme, darkTheme } from "../theme.css.js";
 
 (async () => {
   const settings = await loadSettings();
-  document.documentElement.className =
-    settings.theme === "dark" ? darkTheme : lightTheme;
+  document.documentElement.className = settings.theme === "dark" ? darkTheme : lightTheme;
   render(<App initialLang={settings.lang} />, document.getElementById("app")!);
 })();

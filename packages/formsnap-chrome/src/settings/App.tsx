@@ -85,9 +85,7 @@ export default function SettingsApp() {
               checked={lang === l}
               onChange={() => handleLang(l)}
             />
-            <span className={styles.optionLabel}>
-              {l === "zh" ? t.langZh : t.langEn}
-            </span>
+            <span className={styles.optionLabel}>{l === "zh" ? t.langZh : t.langEn}</span>
           </label>
         ))}
       </div>

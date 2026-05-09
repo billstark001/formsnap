@@ -21,7 +21,7 @@ function candidate(
   text: string,
   source: FieldLabelInfo["source"],
   confidence: number,
-  evidence: string[]
+  evidence: string[],
 ): FieldLabelInfo | null {
   const cleaned = cleanLabelText(text);
   if (!cleaned || cleaned.length > 100) return null;
@@ -44,9 +44,7 @@ function tableHeaderLabel(el: Element): FieldLabelInfo | null {
   const headerRow = table.querySelector("thead tr") ?? table.querySelector("tr");
   const colHeader = headerRow?.children[colIndex];
   if (colHeader?.tagName.toLowerCase() === "th") labels.push(elementText(colHeader));
-  const rowHeader = Array.from(row.children).find(
-    (child) => child.tagName.toLowerCase() === "th"
-  );
+  const rowHeader = Array.from(row.children).find((child) => child.tagName.toLowerCase() === "th");
   if (rowHeader) labels.push(elementText(rowHeader));
   return candidate(labels.filter(Boolean).join(" "), "table-header", LABEL_SCORES.tableHeader, [
     "table header cell",
@@ -60,9 +58,7 @@ function nearbyLabel(el: Element): FieldLabelInfo | null {
   const previous = el.previousElementSibling;
   const prevText = elementText(previous);
   if (prevText) {
-    return candidate(prevText, "nearby-text", LABEL_SCORES.nearby, [
-      "previous sibling text",
-    ]);
+    return candidate(prevText, "nearby-text", LABEL_SCORES.nearby, ["previous sibling text"]);
   }
   const labelish = Array.from(parent.children).find((child) => {
     if (child === el || /input|select|textarea|button/i.test(child.tagName)) return false;
@@ -78,7 +74,9 @@ function nearbyLabel(el: Element): FieldLabelInfo | null {
   let depth = 0;
   while (ancestor && depth < 4 && !/^(body|html|form)$/i.test(ancestor.tagName)) {
     const ancestorLabel = Array.from(
-      ancestor.querySelectorAll(":scope > label,:scope > .label,:scope > [class*='label'],:scope > span,:scope > div")
+      ancestor.querySelectorAll(
+        ":scope > label,:scope > .label,:scope > [class*='label'],:scope > span,:scope > div",
+      ),
     ).find((child) => {
       if (child.contains(el)) return false;
       const text = elementText(child);
@@ -88,7 +86,7 @@ function nearbyLabel(el: Element): FieldLabelInfo | null {
       elementText(ancestorLabel ?? null),
       "nearby-text",
       LABEL_SCORES.nearby - 4 - depth * 4,
-      ["ancestor label-like text"]
+      ["ancestor label-like text"],
     );
     if (fromAncestor) return fromAncestor;
     ancestor = ancestor.parentElement;
@@ -97,20 +95,21 @@ function nearbyLabel(el: Element): FieldLabelInfo | null {
   return null;
 }
 
-export function detectFieldLabel(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): FieldLabelInfo | undefined {
+export function detectFieldLabel(
+  el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
+): FieldLabelInfo | undefined {
   const doc = el.ownerDocument;
   const labels = Array.from((el as HTMLInputElement).labels ?? []);
   const explicit = labels.find((label) => label.htmlFor === el.id && el.id);
   const wrapped = labels.find((label) => !label.htmlFor);
-  const labelledBy = el.getAttribute("aria-labelledby")
+  const labelledBy = el
+    .getAttribute("aria-labelledby")
     ?.split(/\s+/)
     .map((id) => elementText(doc.getElementById(id)))
     .filter(Boolean)
     .join(" ");
   const legend = elementText(el.closest("fieldset")?.querySelector("legend") ?? null);
-  const tokenLabel = [identifierLabel(el.name), identifierLabel(el.id)]
-    .filter(Boolean)
-    .join(" ");
+  const tokenLabel = [identifierLabel(el.name), identifierLabel(el.id)].filter(Boolean).join(" ");
   const accessibleName = computeAccessibleName(el);
 
   return best([

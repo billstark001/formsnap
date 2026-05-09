@@ -18,7 +18,9 @@ function setup(html: string): Document {
   (global as any).HTMLInputElement = dom.window.HTMLInputElement;
   (global as any).HTMLTextAreaElement = dom.window.HTMLTextAreaElement;
   (global as any).Event = dom.window.Event;
-  (global as any).CSS = { escape: (s: string) => s.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1") };
+  (global as any).CSS = {
+    escape: (s: string) => s.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1"),
+  };
   return doc;
 }
 
@@ -60,7 +62,9 @@ describe("sample-derived form patterns", () => {
     `);
     const results = restoreSnapshot(snapshot, { allowWeakMatches: true }, doc);
     expect(results.filter((r) => r.status === "ok").length).toBeGreaterThanOrEqual(5);
-    expect((doc.querySelector("input[name=email]") as HTMLInputElement).value).toBe("hana@example.test");
+    expect((doc.querySelector("input[name=email]") as HTMLInputElement).value).toBe(
+      "hana@example.test",
+    );
   });
 
   it("handles a badge minting panel with nearby labels, aria labels, switches and file input", () => {

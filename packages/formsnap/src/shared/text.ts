@@ -5,16 +5,11 @@ export function collapseWhitespace(s: string): string {
 }
 
 export function normalizeText(s: string): string {
-  return collapseWhitespace(s.replace(/[：]/g, ":"))
-    .replace(LABEL_NOISE, "")
-    .trim()
-    .toLowerCase();
+  return collapseWhitespace(s.replace(/[：]/g, ":")).replace(LABEL_NOISE, "").trim().toLowerCase();
 }
 
 export function cleanLabelText(s: string): string {
-  return collapseWhitespace(s)
-    .replace(LABEL_NOISE, "")
-    .trim();
+  return collapseWhitespace(s).replace(LABEL_NOISE, "").trim();
 }
 
 export function elementText(el: Element | null, maxLength = 120): string {
@@ -31,9 +26,10 @@ export function looksDynamicToken(token: string): boolean {
   const t = token.trim();
   if (!t) return true;
   const lower = t.toLowerCase();
-  const semantic = /email|mail|phone|tel|postal|postcode|zip|address|name|first|last|company|city|street|country|pref|region|user/.test(
-    lower
-  );
+  const semantic =
+    /email|mail|phone|tel|postal|postcode|zip|address|name|first|last|company|city|street|country|pref|region|user/.test(
+      lower,
+    );
   if (semantic) return false;
   if (/^(?:[0-9a-f]{8,}|[a-z0-9+/]{16,}={0,2})$/i.test(t)) return true;
   if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(t))

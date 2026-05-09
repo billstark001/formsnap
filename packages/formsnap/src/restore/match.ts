@@ -35,7 +35,7 @@ function matchingIdentitySources(source: FieldInfo, target: FieldInfo): string[]
 export function scoreFieldMatch(
   source: FieldInfo,
   target: FieldInfo,
-  options: RestoreOptions = {}
+  options: RestoreOptions = {},
 ): FieldMatch {
   let score = 0;
   const evidence: string[] = [];
@@ -49,7 +49,7 @@ export function scoreFieldMatch(
   if (identityMatches.length >= preset.minimumSourceMatches) {
     add(
       preset.score,
-      `same identity sources (${identityMatches.length}/${preset.minimumSourceMatches})`
+      `same identity sources (${identityMatches.length}/${preset.minimumSourceMatches})`,
     );
   }
   if (same(source.identity?.stableKey, target.identity?.stableKey)) add(100, "same stableKey");
@@ -60,20 +60,35 @@ export function scoreFieldMatch(
   ) {
     add(80, "same reliable selector");
   }
-  if (same(source.semantic?.slot, target.semantic?.slot) && source.semantic?.slot !== "unknown") add(35, "same semantic slot");
-  if (normalizeText(source.label?.text ?? "") && normalizeText(source.label?.text ?? "") === normalizeText(target.label?.text ?? "")) {
+  if (same(source.semantic?.slot, target.semantic?.slot) && source.semantic?.slot !== "unknown")
+    add(35, "same semantic slot");
+  if (
+    normalizeText(source.label?.text ?? "") &&
+    normalizeText(source.label?.text ?? "") === normalizeText(target.label?.text ?? "")
+  ) {
     add(35, "same normalized label");
   }
-  if (same(source.repeat?.groupKey, target.repeat?.groupKey) && same(source.repeat?.colIndex, target.repeat?.colIndex)) {
+  if (
+    same(source.repeat?.groupKey, target.repeat?.groupKey) &&
+    same(source.repeat?.colIndex, target.repeat?.colIndex)
+  ) {
     add(35, "same repeat group column");
-  } else if (source.repeat && target.repeat && same(source.repeat?.colIndex, target.repeat?.colIndex)) {
+  } else if (
+    source.repeat &&
+    target.repeat &&
+    same(source.repeat?.colIndex, target.repeat?.colIndex)
+  ) {
     add(25, "same repeat column");
   }
-  const nameOverlap = tokenOverlap(tokenizeIdentifier(source.name), tokenizeIdentifier(target.name));
+  const nameOverlap = tokenOverlap(
+    tokenizeIdentifier(source.name),
+    tokenizeIdentifier(target.name),
+  );
   if (nameOverlap > 0) add(Math.round(25 * nameOverlap), "stable name token overlap");
   const idOverlap = tokenOverlap(tokenizeIdentifier(source.id), tokenizeIdentifier(target.id));
   if (idOverlap > 0) add(Math.round(20 * idOverlap), "stable id token overlap");
-  if (source.tag === target.tag && (source.type ?? "") === (target.type ?? "")) add(10, "same tag/type");
+  if (source.tag === target.tag && (source.type ?? "") === (target.type ?? ""))
+    add(10, "same tag/type");
   if (source.options?.length && target.options?.length) {
     const a = source.options.map((o) => normalizeText(o.text)).join("|");
     const b = target.options.map((o) => normalizeText(o.text)).join("|");
@@ -100,7 +115,7 @@ export function scoreFieldMatch(
 export function matchFields(
   sourceFields: FieldInfo[],
   targetFields: FieldInfo[],
-  options: RestoreOptions = {}
+  options: RestoreOptions = {},
 ): RestorePlan {
   const min = options.minMatchConfidence ?? (options.allowWeakMatches ? 0.35 : 0.55);
   const candidates: FieldMatch[] = [];
@@ -131,7 +146,7 @@ export function matchFields(
 export function createRestorePlan(
   snapshot: { fields: FieldInfo[] } | FieldInfo[],
   current: FieldInfo[],
-  options: RestoreOptions = {}
+  options: RestoreOptions = {},
 ): RestorePlan {
   const source = Array.isArray(snapshot) ? snapshot : snapshot.fields;
   const plan = matchFields(source, current, options);

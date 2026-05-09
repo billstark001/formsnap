@@ -2,7 +2,8 @@ import type { FieldAdapter, FieldInfo } from "../types.js";
 
 export const nativeTextAdapter: FieldAdapter = {
   id: "nativeText",
-  detect: (el) => /input/i.test(el.tagName) && !/checkbox|radio/i.test((el as HTMLInputElement).type),
+  detect: (el) =>
+    /input/i.test(el.tagName) && !/checkbox|radio/i.test((el as HTMLInputElement).type),
   read: (el) => (el as HTMLInputElement).value,
   write: (el, value) => {
     (el as HTMLInputElement).value = String(value ?? "");

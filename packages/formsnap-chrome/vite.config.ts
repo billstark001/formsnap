@@ -15,8 +15,8 @@ function writePlaceholderIcon(dest: string) {
   // Minimal 1x1 transparent PNG (68 bytes)
   const png = Buffer.from(
     "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4" +
-    "890000000a49444154789c6260000000000200e221bc330000000049454e44ae426082",
-    "hex"
+      "890000000a49444154789c6260000000000200e221bc330000000049454e44ae426082",
+    "hex",
   );
   writeFileSync(dest, png);
 }

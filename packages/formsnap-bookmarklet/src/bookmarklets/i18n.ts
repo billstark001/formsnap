@@ -42,13 +42,11 @@ const locale = {
     exportFormat: "导出格式",
     // collector actions
     collect: "▶ 采集",
-    collectDone: (n: number) =>
-      `✅ 已采集 ${n} 个字段，已保存至 window.__form__`,
+    collectDone: (n: number) => `✅ 已采集 ${n} 个字段，已保存至 window.__form__`,
     copy: "📋 复制",
     copied: "✓ 已复制",
     // filler banner
-    windowFormFound: (n: number) =>
-      `✅ 检测到 window.__form__，已包含 ${n} 个字段`,
+    windowFormFound: (n: number) => `✅ 检测到 window.__form__，已包含 ${n} 个字段`,
     windowFormMissing: "⚠️ 未找到 window.__form__，请手动粘贴 JSON",
     // filler options
     fireEvents: "触发 input 事件",
@@ -108,18 +106,15 @@ const locale = {
     exportFormat: "Export format",
     // collector actions
     collect: "▶ Collect",
-    collectDone: (n: number) =>
-      `✅ Collected ${n} field(s), saved to window.__form__`,
+    collectDone: (n: number) => `✅ Collected ${n} field(s), saved to window.__form__`,
     copy: "📋 Copy",
     copied: "✓ Copied",
     // filler banner
-    windowFormFound: (n: number) =>
-      `✅ Detected window.__form__ with ${n} field(s)`,
+    windowFormFound: (n: number) => `✅ Detected window.__form__ with ${n} field(s)`,
     windowFormMissing: "⚠️ window.__form__ not found. Paste JSON manually.",
     // filler options
     fireEvents: "Fire input events",
-    fireEventsHint:
-      "Trigger input/change after fill (React/Vue/Angular compatible)",
+    fireEventsHint: "Trigger input/change after fill (React/Vue/Angular compatible)",
     fallbackMatch: "Fallback matching",
     fallbackMatchHint: "Try name → id when selector fails",
     identityPreset: "Identity match preset",

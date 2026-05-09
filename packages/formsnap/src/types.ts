@@ -316,9 +316,5 @@ export interface FieldAdapter {
   id: string;
   detect(el: Element, info: FieldInfo): boolean;
   read?(el: Element): unknown;
-  write?(
-    el: Element,
-    value: unknown,
-    info: FieldInfo
-  ): boolean | Promise<boolean>;
+  write?(el: Element, value: unknown, info: FieldInfo): boolean | Promise<boolean>;
 }

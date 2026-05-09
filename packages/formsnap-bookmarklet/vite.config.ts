@@ -47,7 +47,8 @@ function bookmarkletPlugin() {
           // During dev, bookmarklets may not be built yet
           code = "/* build bookmarklets first */";
         }
-        const remoteUrl = process.env.VITE_REMOTE_URL ?? "https://billstark001.github.io/formsnap/formsnap.js";
+        const remoteUrl =
+          process.env.VITE_REMOTE_URL ?? "https://billstark001.github.io/formsnap/formsnap.js";
         const loaderCode =
           `var s=document.createElement('script');` +
           `s.src=${JSON.stringify(remoteUrl)};` +
@@ -64,10 +65,5 @@ function bookmarkletPlugin() {
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH ?? "/",
-  plugins: [
-    preact(),
-    vanillaExtractPlugin(),
-    bookmarkletPlugin(),
-    copyBookmarkletPlugin(),
-  ],
+  plugins: [preact(), vanillaExtractPlugin(), bookmarkletPlugin(), copyBookmarkletPlugin()],
 });

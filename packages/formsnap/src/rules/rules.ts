@@ -59,7 +59,10 @@ export function normalizeRuleSet(input: unknown): HeuristicRuleSet {
   const inputRuleSet = parsed.output;
   const rules: HeuristicRule[] = [];
   for (const rule of inputRuleSet.rules) {
-    const scope = rule.scope === "site" || rule.scope === "form" || rule.scope === "component" ? rule.scope : "global";
+    const scope =
+      rule.scope === "site" || rule.scope === "form" || rule.scope === "component"
+        ? rule.scope
+        : "global";
     rules.push({
       id: rule.id,
       version: typeof rule.version === "number" ? rule.version : undefined,
@@ -112,8 +115,10 @@ function ruleMatches(field: FieldInfo, context: RuleContext, rule: HeuristicRule
     }
   }
   if (m.repeat) {
-    if (m.repeat.colIndex !== undefined && field.repeat?.colIndex !== m.repeat.colIndex) return false;
-    if (m.repeat.fieldIndex !== undefined && field.repeat?.fieldIndex !== m.repeat.fieldIndex) return false;
+    if (m.repeat.colIndex !== undefined && field.repeat?.colIndex !== m.repeat.colIndex)
+      return false;
+    if (m.repeat.fieldIndex !== undefined && field.repeat?.fieldIndex !== m.repeat.fieldIndex)
+      return false;
     if (!matches(field.repeat?.groupLabel, m.repeat.groupLabel)) return false;
   }
   return true;
@@ -122,7 +127,7 @@ function ruleMatches(field: FieldInfo, context: RuleContext, rule: HeuristicRule
 export function applyHeuristicRules(
   field: FieldInfo,
   context: RuleContext,
-  rules: HeuristicRuleSet
+  rules: HeuristicRuleSet,
 ): FieldInfo {
   const next: FieldInfo = { ...field };
   for (const rule of rules.rules) {
@@ -161,7 +166,7 @@ export function applyHeuristicRules(
 
 export async function fetchHeuristicRuleSet(
   url: string,
-  options: { signal?: AbortSignal; timeoutMs?: number } = {}
+  options: { signal?: AbortSignal; timeoutMs?: number } = {},
 ): Promise<HeuristicRuleSet> {
   const controller = new AbortController();
   const timeout = options.timeoutMs
@@ -198,11 +203,13 @@ const matcherSchema = v.object({
   text: v.optional(stringMatcherSchema),
   attributes: v.optional(v.record(v.string(), stringMatcherSchema)),
   ancestorText: v.optional(stringMatcherSchema),
-  repeat: v.optional(v.object({
-    colIndex: v.optional(v.number()),
-    fieldIndex: v.optional(v.number()),
-    groupLabel: v.optional(stringMatcherSchema),
-  })),
+  repeat: v.optional(
+    v.object({
+      colIndex: v.optional(v.number()),
+      fieldIndex: v.optional(v.number()),
+      groupLabel: v.optional(stringMatcherSchema),
+    }),
+  ),
 });
 
 const actionSchema = v.object({
@@ -216,12 +223,9 @@ const actionSchema = v.object({
 const ruleSchema = v.object({
   id: v.string(),
   version: v.optional(v.number()),
-  scope: v.optional(v.union([
-    v.literal("global"),
-    v.literal("site"),
-    v.literal("form"),
-    v.literal("component"),
-  ])),
+  scope: v.optional(
+    v.union([v.literal("global"), v.literal("site"), v.literal("form"), v.literal("component")]),
+  ),
   priority: v.optional(v.number()),
   confidence: v.optional(v.number()),
   match: matcherSchema,

@@ -13,7 +13,11 @@ function nearestRepeatUnit(el: Element): Element | null {
   let node = el.parentElement;
   while (node && node.tagName.toLowerCase() !== "body") {
     const count = node.querySelectorAll("input,select,textarea").length;
-    if (count >= 1 && count <= 20 && /^(div|li|fieldset|section|article|tr|tbody)$/i.test(node.tagName)) {
+    if (
+      count >= 1 &&
+      count <= 20 &&
+      /^(div|li|fieldset|section|article|tr|tbody)$/i.test(node.tagName)
+    ) {
       return node;
     }
     node = node.parentElement;
@@ -23,7 +27,9 @@ function nearestRepeatUnit(el: Element): Element | null {
 
 function fingerprint(unit: Element): string {
   const fields = Array.from(unit.querySelectorAll("input,select,textarea"));
-  const fieldTypes = fields.map((el) => `${el.tagName.toLowerCase()}:${((el as HTMLInputElement).type ?? "").toLowerCase()}`);
+  const fieldTypes = fields.map(
+    (el) => `${el.tagName.toLowerCase()}:${((el as HTMLInputElement).type ?? "").toLowerCase()}`,
+  );
   const children = Array.from(unit.children).map((child) => child.tagName.toLowerCase());
   return stableHash([unit.tagName.toLowerCase(), fieldTypes, children, fields.length]);
 }
@@ -69,7 +75,9 @@ export function detectRepeatGroups(fields: FieldInfo[], root: Document | Element
           itemIndex,
           fieldIndex,
           rowIndex: itemIndex,
-          colIndex: cell ? Array.from(cell.parentElement?.children ?? []).indexOf(cell) : fieldIndex,
+          colIndex: cell
+            ? Array.from(cell.parentElement?.children ?? []).indexOf(cell)
+            : fieldIndex,
           confidence: 0.82,
         };
       });
@@ -116,7 +124,10 @@ function propagateRepeatLabels(fields: FieldInfo[]): void {
   const labelsByGroupField = new Map<string, string>();
   for (const field of fields) {
     if (!field.repeat || !field.label?.text) continue;
-    labelsByGroupField.set(`${field.repeat.groupKey}:${field.repeat.colIndex ?? field.repeat.fieldIndex}`, field.label.text);
+    labelsByGroupField.set(
+      `${field.repeat.groupKey}:${field.repeat.colIndex ?? field.repeat.fieldIndex}`,
+      field.label.text,
+    );
   }
   for (const field of fields) {
     if (!field.repeat || field.label?.text) continue;

@@ -19,7 +19,9 @@ beforeEach(() => {
   doc = dom.window.document;
   // polyfill getComputedStyle for JSDOM
   (global as any).getComputedStyle = dom.window.getComputedStyle.bind(dom.window);
-  (global as any).CSS = { escape: (s: string) => s.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1") };
+  (global as any).CSS = {
+    escape: (s: string) => s.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1"),
+  };
   (global as any).document = doc;
 });
 
@@ -129,6 +131,6 @@ describe("collectFields", () => {
     form.appendChild(btn);
     doc.body.appendChild(form);
     const results = collectFields({ includeButtons: false, includeEmpty: true }, doc);
-    expect(results.filter(r => r.type === "submit").length).toBe(0);
+    expect(results.filter((r) => r.type === "submit").length).toBe(0);
   });
 });

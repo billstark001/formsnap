@@ -21,9 +21,7 @@ import * as s from "./main.css";
 
 // ─── Collector Tab ─────────────────────────────────────────────────────────────
 
-type CollectorResult =
-  | { status: "idle" }
-  | { status: "done"; snapshot: PortableFormSnapshot };
+type CollectorResult = { status: "idle" } | { status: "done"; snapshot: PortableFormSnapshot };
 
 function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
   const [includeHidden, setIncludeHidden] = useState(false);
@@ -81,8 +79,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const json =
-    result.status === "done" ? stringifySnapshot(result.snapshot, exportFormat) : "";
+  const json = result.status === "done" ? stringifySnapshot(result.snapshot, exportFormat) : "";
 
   return (
     <Fragment>
@@ -93,9 +90,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={includeHidden}
-            onChange={(e) =>
-              setIncludeHidden((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setIncludeHidden((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.inclHidden}</span>
@@ -107,9 +102,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={includeDisabled}
-            onChange={(e) =>
-              setIncludeDisabled((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setIncludeDisabled((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.inclDisabled}</span>
@@ -120,9 +113,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={includeButtons}
-            onChange={(e) =>
-              setIncludeButtons((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setIncludeButtons((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.inclButtons}</span>
@@ -134,9 +125,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={includeOptions}
-            onChange={(e) =>
-              setIncludeOptions((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setIncludeOptions((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.inclOptions}</span>
@@ -148,9 +137,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={includeEmpty}
-            onChange={(e) =>
-              setIncludeEmpty((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setIncludeEmpty((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.inclEmpty}</span>
@@ -161,9 +148,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={includeNaiveId}
-            onChange={(e) =>
-              setIncludeNaiveId((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setIncludeNaiveId((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.inclNaiveId}</span>
@@ -174,9 +159,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={includeDescription}
-            onChange={(e) =>
-              setIncludeDescription((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setIncludeDescription((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.inclDescription}</span>
@@ -187,9 +170,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={includeSource}
-            onChange={(e) =>
-              setIncludeSource((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setIncludeSource((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.inclSource}</span>
@@ -210,10 +191,7 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
         </label>
       </div>
 
-      <button
-        className={`${s.primaryBtn} ${s.btnGreen}`}
-        onClick={handleCollect}
-      >
+      <button className={`${s.primaryBtn} ${s.btnGreen}`} onClick={handleCollect}>
         {t.collect}
       </button>
 
@@ -222,17 +200,9 @@ function CollectorTab({ modalEl, t }: { modalEl: HTMLElement; t: Locale }) {
           <div className={`${s.banner} ${s.bannerGreen}`}>
             {t.collectDone(result.snapshot.fields.length)}
           </div>
-          <textarea
-            readOnly
-            className={s.textarea}
-            style={{ height: 260 }}
-            value={json}
-          />
+          <textarea readOnly className={s.textarea} style={{ height: 260 }} value={json} />
           <div className={s.actionsRow}>
-            <button
-              className={`${s.actionBtn} ${s.actionBtnBlue}`}
-              onClick={handleCopy}
-            >
+            <button className={`${s.actionBtn} ${s.actionBtnBlue}`} onClick={handleCopy}>
               {copied ? t.copied : t.copy}
             </button>
           </div>
@@ -261,7 +231,8 @@ function FillerTab({ t }: { t: Locale }) {
   const [fallbackMatch, setFallbackMatch] = useState(true);
   const [fillReadonly, setFillReadonly] = useState(false);
   const [fillDisabled, setFillDisabled] = useState(false);
-  const [identityMatchPreset, setIdentityMatchPreset] = useState<IdentityMatchPresetName>("balanced");
+  const [identityMatchPreset, setIdentityMatchPreset] =
+    useState<IdentityMatchPresetName>("balanced");
   const [identitySourceThreshold, setIdentitySourceThreshold] = useState("default");
   const [minMatchConfidence, setMinMatchConfidence] = useState("default");
   const [fillResult, setFillResult] = useState<FillResult>({ status: "idle" });
@@ -298,8 +269,7 @@ function FillerTab({ t }: { t: Locale }) {
     const skip = results.filter((r) => r.status === "skip").length;
     const fail = results.filter((r) => r.status === "fail").length;
     const lines = results.map((r) => {
-      const icon =
-        r.status === "ok" ? "✅" : r.status === "skip" ? "⏭" : "❌";
+      const icon = r.status === "ok" ? "✅" : r.status === "skip" ? "⏭" : "❌";
       return `${icon} ${r.selector}${r.reason ? ` (${r.reason})` : ""}`;
     });
 
@@ -308,9 +278,7 @@ function FillerTab({ t }: { t: Locale }) {
 
   return (
     <Fragment>
-      <div
-        className={`${s.banner} ${hasWindowData ? s.bannerGreen : s.bannerYellow}`}
-      >
+      <div className={`${s.banner} ${hasWindowData ? s.bannerGreen : s.bannerYellow}`}>
         {hasWindowData
           ? t.windowFormFound(((window as any).__form__.fields ?? (window as any).__form__).length)
           : t.windowFormMissing}
@@ -323,9 +291,7 @@ function FillerTab({ t }: { t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={fireEvents}
-            onChange={(e) =>
-              setFireEvents((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setFireEvents((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.fireEvents}</span>
@@ -337,9 +303,7 @@ function FillerTab({ t }: { t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={fallbackMatch}
-            onChange={(e) =>
-              setFallbackMatch((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setFallbackMatch((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.fallbackMatch}</span>
@@ -351,7 +315,9 @@ function FillerTab({ t }: { t: Locale }) {
           <select
             value={identityMatchPreset}
             onChange={(e) =>
-              setIdentityMatchPreset((e.target as HTMLSelectElement).value as IdentityMatchPresetName)
+              setIdentityMatchPreset(
+                (e.target as HTMLSelectElement).value as IdentityMatchPresetName,
+              )
             }
           >
             <option value="strict">{t.identityStrict}</option>
@@ -388,9 +354,7 @@ function FillerTab({ t }: { t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={fillReadonly}
-            onChange={(e) =>
-              setFillReadonly((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setFillReadonly((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.fillReadonly}</span>
@@ -401,9 +365,7 @@ function FillerTab({ t }: { t: Locale }) {
             type="checkbox"
             className={s.checkInput}
             checked={fillDisabled}
-            onChange={(e) =>
-              setFillDisabled((e.target as HTMLInputElement).checked)
-            }
+            onChange={(e) => setFillDisabled((e.target as HTMLInputElement).checked)}
           />
           <span>
             <span className={s.checkTitle}>{t.fillDisabled}</span>
@@ -471,13 +433,7 @@ function FillerTab({ t }: { t: Locale }) {
 
 type Tab = "collector" | "filler";
 
-function App({
-  onClose,
-  modalEl,
-}: {
-  onClose: () => void;
-  modalEl: HTMLElement;
-}) {
+function App({ onClose, modalEl }: { onClose: () => void; modalEl: HTMLElement }) {
   const [activeTab, setActiveTab] = useState<Tab>("collector");
   const { t, toggleLang } = useI18n();
 
@@ -510,11 +466,7 @@ function App({
         </button>
       </div>
 
-      {activeTab === "collector" ? (
-        <CollectorTab modalEl={modalEl} t={t} />
-      ) : (
-        <FillerTab t={t} />
-      )}
+      {activeTab === "collector" ? <CollectorTab modalEl={modalEl} t={t} /> : <FillerTab t={t} />}
     </div>
   );
 }
@@ -542,8 +494,5 @@ if (existing) {
   host.id = MODAL_ID;
   document.body.appendChild(host);
 
-  render(
-    <App onClose={() => host.remove()} modalEl={host} />,
-    host
-  );
+  render(<App onClose={() => host.remove()} modalEl={host} />, host);
 }

@@ -24,17 +24,13 @@ function fieldKind(field: FieldInfo): string {
 
 function fieldDescription(field: FieldInfo, index: number): string {
   return (
-    field.label?.text ||
-    field.semantic?.slot ||
-    field.name ||
-    field.id ||
-    `Field ${index + 1}`
+    field.label?.text || field.semantic?.slot || field.name || field.id || `Field ${index + 1}`
   );
 }
 
 export function toPortableSnapshot(
   snapshot: FormSnapshot,
-  capture: PortableSnapshotCaptureOptions = {}
+  capture: PortableSnapshotCaptureOptions = {},
 ): PortableFormSnapshot {
   const include = { ...DEFAULT_CAPTURE, ...capture };
   return {
@@ -62,7 +58,8 @@ export function toPortableSnapshot(
       if (field.selectedText !== undefined) portable.selectedText = field.selectedText;
       if (field.selectedValues !== undefined) portable.selectedValues = field.selectedValues;
       if (field.checked !== undefined) portable.checked = field.checked;
-      if (field.groupSelectedValue !== undefined) portable.groupSelectedValue = field.groupSelectedValue;
+      if (field.groupSelectedValue !== undefined)
+        portable.groupSelectedValue = field.groupSelectedValue;
       if (include.naiveId) portable.naiveId = createNaiveId(field, index);
       if (include.description) portable.description = fieldDescription(field, index);
       if (include.source) {
@@ -163,14 +160,14 @@ function isFormSnapshot(input: unknown): input is FormSnapshot {
 
 export function stringifySnapshot(
   snapshot: PortableFormSnapshot,
-  format: SnapshotTextFormat
+  format: SnapshotTextFormat,
 ): string {
   return format === "json" ? JSON.stringify(snapshot, null, 2) : stringifyYaml(snapshot);
 }
 
 export function parseSnapshotText(
   text: string,
-  format: SnapshotTextInputFormat = "auto"
+  format: SnapshotTextInputFormat = "auto",
 ): FormSnapshot {
   const trimmed = text.trim();
   if (!trimmed) throw new Error("Import text is empty");
@@ -210,14 +207,16 @@ const portableFieldSchema = v.object({
 const portableSnapshotSchema = v.object({
   version: v.literal(3),
   createdAt: v.string(),
-  form: v.optional(v.object({
-    key: v.string(),
-    fieldCount: v.number(),
-    url: v.optional(v.string()),
-    host: v.optional(v.string()),
-    pathname: v.optional(v.string()),
-    titleText: v.optional(v.string()),
-  })),
+  form: v.optional(
+    v.object({
+      key: v.string(),
+      fieldCount: v.number(),
+      url: v.optional(v.string()),
+      host: v.optional(v.string()),
+      pathname: v.optional(v.string()),
+      titleText: v.optional(v.string()),
+    }),
+  ),
   fields: v.array(portableFieldSchema),
 });
 

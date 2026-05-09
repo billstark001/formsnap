@@ -74,7 +74,7 @@ function getSimpleSelector(el: Element): string {
     const parent: Element | null = current.parentElement;
     if (parent) {
       const sameTag = Array.from(parent.children).filter(
-        (child) => child.tagName === current.tagName
+        (child) => child.tagName === current.tagName,
       );
       if (sameTag.length > 1) seg += `:nth-of-type(${sameTag.indexOf(current) + 1})`;
     }
@@ -117,7 +117,7 @@ export function getStructuralPath(el: Element): string {
       const parent = node.parentElement;
       if (parent) {
         const sameTag = Array.from(parent.children).filter(
-          (child) => child.tagName === node!.tagName
+          (child) => child.tagName === node!.tagName,
         );
         if (sameTag.length > 1) seg += `:nth(${sameTag.indexOf(node) + 1})`;
       }
@@ -128,10 +128,7 @@ export function getStructuralPath(el: Element): string {
   return parts.join(">");
 }
 
-export function getStableSelector(
-  el: Element,
-  options: StableSelectorOptions = {}
-): string {
+export function getStableSelector(el: Element, options: StableSelectorOptions = {}): string {
   const tag = el.tagName.toLowerCase();
   const name = (el as HTMLInputElement).name;
   if (options.preferName && name && tokenizeIdentifier(name).length) {
@@ -158,10 +155,7 @@ export function getBestSelector(el: Element): {
   };
 }
 
-export function getFieldIdentity(
-  el: Element,
-  context: FieldContext = {}
-): FieldIdentityInfo {
+export function getFieldIdentity(el: Element, context: FieldContext = {}): FieldIdentityInfo {
   const tag = el.tagName.toLowerCase();
   const type = ((el as HTMLInputElement).type ?? "").toLowerCase();
   const name = (el as HTMLInputElement).name;
@@ -171,15 +165,7 @@ export function getFieldIdentity(
   const selectorReliability = getSelectorReliability(el);
   const idReliability = el.id ? (looksDynamicToken(el.id) ? 20 : 85) : undefined;
   const nameReliability = name ? (nameTokens.length ? 75 : 30) : undefined;
-  const keyParts = [
-    "v1",
-    context.formKey,
-    tag,
-    type,
-    idTokens,
-    nameTokens,
-    structuralPath,
-  ];
+  const keyParts = ["v1", context.formKey, tag, type, idTokens, nameTokens, structuralPath];
   return {
     stableKey: `fs_${stableHash(keyParts)}`,
     weakKey: `fw_${stableHash([tag, type, nameTokens, idTokens])}`,

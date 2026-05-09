@@ -29,7 +29,7 @@ function findForm(root: Document | Element, fields: FieldInfo[]): HTMLFormElemen
 export function createFormSignature(
   fields: FieldInfo[],
   options: AnalyzeOptions = {},
-  root: Document | Element = document
+  root: Document | Element = document,
 ): FormSignature {
   const form = findForm(root, fields);
   const fieldTypeSequence = fields.map((field) => `${field.tag}:${field.type ?? ""}`);
@@ -40,7 +40,11 @@ export function createFormSignature(
         .map((el) => normalizeText((el as HTMLInputElement).value || el.textContent || ""))
         .filter(Boolean)
     : [];
-  const structureHash = stableHash([fieldTypeSequence, fieldSemanticSequence, fields.map((f) => f.repeat?.groupKey)]);
+  const structureHash = stableHash([
+    fieldTypeSequence,
+    fieldSemanticSequence,
+    fields.map((f) => f.repeat?.groupKey),
+  ]);
   const textHash = stableHash([labels, submitTexts]);
   const loc = locationParts(options.url);
   return {
@@ -62,7 +66,7 @@ export function createFormSignature(
 
 export function collectSnapshot(
   options: AnalyzeOptions = {},
-  root: Document | Element = document
+  root: Document | Element = document,
 ): FormSnapshot {
   const fields = analyzeFields(options, root);
   return {

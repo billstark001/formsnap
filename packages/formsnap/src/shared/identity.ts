@@ -16,9 +16,7 @@ const SOURCE_CODES: Record<StableIdentitySourceKind, string> = {
   "naive-id": "d",
 };
 
-type IdentitySourceInput =
-  | StableIdentitySource
-  | { kind: StableIdentitySourceKind; value: string };
+type IdentitySourceInput = StableIdentitySource | { kind: StableIdentitySourceKind; value: string };
 
 function firstToken(...values: Array<string | undefined>): string | undefined {
   for (const value of values) {
@@ -39,31 +37,32 @@ export function createNaiveId(field: FieldInfo, index = 0): string {
       field.name,
       field.id,
       field.identity?.weakKey,
-      field.selector
+      field.selector,
     ) ?? `field_${index + 1}`
   );
 }
 
 export function encodeIdentitySource(
   kind: StableIdentitySourceKind,
-  value: string
+  value: string,
 ): StableIdentitySource {
   // Keep snapshots compact and privacy-friendlier by storing hashed facts.
   return `${SOURCE_CODES[kind]}${stableHash(value).slice(0, 10)}`;
 }
 
 export function uniqueIdentitySources(
-  sources: Array<IdentitySourceInput | undefined>
+  sources: Array<IdentitySourceInput | undefined>,
 ): StableIdentitySource[] {
   const seen = new Set<string>();
   const result: StableIdentitySource[] = [];
   for (const source of sources) {
     if (!source) continue;
-    const key = typeof source === "string"
-      ? source
-      : source.value
-        ? encodeIdentitySource(source.kind, source.value)
-        : "";
+    const key =
+      typeof source === "string"
+        ? source
+        : source.value
+          ? encodeIdentitySource(source.kind, source.value)
+          : "";
     if (!key) continue;
     if (seen.has(key)) continue;
     seen.add(key);

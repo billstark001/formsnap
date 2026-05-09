@@ -10,7 +10,9 @@ beforeEach(() => {
   dom = new JSDOM(`<!DOCTYPE html><body></body>`);
   doc = dom.window.document;
   (global as any).document = doc;
-  (global as any).CSS = { escape: (s: string) => s.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1") };
+  (global as any).CSS = {
+    escape: (s: string) => s.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, "\\$1"),
+  };
   (global as any).HTMLInputElement = dom.window.HTMLInputElement;
   (global as any).HTMLTextAreaElement = dom.window.HTMLTextAreaElement;
   (global as any).Event = dom.window.Event;
@@ -61,7 +63,12 @@ describe("fillElement", () => {
 
 describe("fillFields", () => {
   it("skips button fields", () => {
-    const info: FieldInfo = { selector: "input[type=submit]", tag: "input", type: "submit", visible: true };
+    const info: FieldInfo = {
+      selector: "input[type=submit]",
+      tag: "input",
+      type: "submit",
+      visible: true,
+    };
     const results = fillFields([info], {}, doc);
     expect(results[0].status).toBe("skip");
     expect(results[0].reason).toBe("button");

@@ -8,23 +8,16 @@ const BUTTON_TYPES = new Set(["button", "submit", "reset", "image", "file"]);
 
 /** Fires input and change events (needed for React/Vue/Angular reactivity). */
 export function fireEvents(el: Element): void {
-  ["input", "change"].forEach((t) =>
-    el.dispatchEvent(new Event(t, { bubbles: true }))
-  );
+  ["input", "change"].forEach((t) => el.dispatchEvent(new Event(t, { bubbles: true })));
 }
 
 /**
  * Sets input value through the native property descriptor so that
  * React's synthetic event system detects the change.
  */
-export function nativeSet(
-  el: HTMLInputElement | HTMLTextAreaElement,
-  value: string
-): void {
+export function nativeSet(el: HTMLInputElement | HTMLTextAreaElement, value: string): void {
   const Proto =
-    el.tagName === "TEXTAREA"
-      ? HTMLTextAreaElement.prototype
-      : HTMLInputElement.prototype;
+    el.tagName === "TEXTAREA" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
   const descriptor = Object.getOwnPropertyDescriptor(Proto, "value");
   if (descriptor?.set) {
     descriptor.set.call(el, value);
@@ -37,7 +30,7 @@ export function nativeSet(
 export function findElement(
   info: FieldInfo,
   fallback: boolean,
-  root: Document | Element = document
+  root: Document | Element = document,
 ): Element | null {
   let el: Element | null = null;
   try {
@@ -61,11 +54,7 @@ export function findElement(
 }
 
 /** Fills a single element with data from a FieldInfo object. */
-export function fillElement(
-  el: Element,
-  info: FieldInfo,
-  doFire: boolean
-): boolean {
+export function fillElement(el: Element, info: FieldInfo, doFire: boolean): boolean {
   const tag = el.tagName.toLowerCase();
   const tp = ((el as HTMLInputElement).type ?? "").toLowerCase();
 
@@ -103,7 +92,7 @@ export function fillElement(
 export function fillFields(
   fields: FieldInfo[],
   options: FillOptions = {},
-  root: Document | Element = document
+  root: Document | Element = document,
 ): FillResult[] {
   const {
     fireEvents: doFire = true,
@@ -140,16 +129,12 @@ export function fillFields(
 export function restoreSnapshot(
   snapshot: FormSnapshot | FieldInfo[],
   options: RestoreOptions = {},
-  root: Document | Element = document
+  root: Document | Element = document,
 ): FillResult[] {
-  const {
-    fireEvents: doFire = true,
-    fillReadonly = false,
-    fillDisabled = false,
-  } = options;
+  const { fireEvents: doFire = true, fillReadonly = false, fillDisabled = false } = options;
   const current = analyzeFields(
     { includeEmpty: true, includeDisabled: fillReadonly || fillDisabled },
-    root
+    root,
   );
   const plan = createRestorePlan(snapshot, current, options);
   if (options.dryRun) {
@@ -172,37 +157,53 @@ export function restoreSnapshot(
 
   return [
     ...plan.matches.map((match): FillResult => {
-    const el = findElement(match.target, false, root);
-    if (!el) {
+      const el = findElement(match.target, false, root);
+      if (!el) {
+        return {
+          selector: match.source.selector,
+          targetSelector: match.target.selector,
+          status: "fail",
+          reason: "target-not-found",
+          matchConfidence: match.confidence,
+          matchStrategy: match.strategy,
+        };
+      }
+      if ((el as HTMLInputElement).disabled && !fillDisabled) {
+        return {
+          selector: match.source.selector,
+          targetSelector: match.target.selector,
+          status: "skip",
+          reason: "disabled",
+          matchConfidence: match.confidence,
+          matchStrategy: match.strategy,
+        };
+      }
+      if ((el as HTMLInputElement).readOnly && !fillReadonly) {
+        return {
+          selector: match.source.selector,
+          targetSelector: match.target.selector,
+          status: "skip",
+          reason: "readonly",
+          matchConfidence: match.confidence,
+          matchStrategy: match.strategy,
+        };
+      }
+      const filled = fillElement(el, match.source, doFire);
       return {
         selector: match.source.selector,
         targetSelector: match.target.selector,
-        status: "fail",
-        reason: "target-not-found",
+        status: filled ? "ok" : "fail",
+        reason: filled ? undefined : "fill-failed",
         matchConfidence: match.confidence,
         matchStrategy: match.strategy,
       };
-    }
-    if ((el as HTMLInputElement).disabled && !fillDisabled) {
-      return { selector: match.source.selector, targetSelector: match.target.selector, status: "skip", reason: "disabled", matchConfidence: match.confidence, matchStrategy: match.strategy };
-    }
-    if ((el as HTMLInputElement).readOnly && !fillReadonly) {
-      return { selector: match.source.selector, targetSelector: match.target.selector, status: "skip", reason: "readonly", matchConfidence: match.confidence, matchStrategy: match.strategy };
-    }
-    const filled = fillElement(el, match.source, doFire);
-    return {
-      selector: match.source.selector,
-      targetSelector: match.target.selector,
-      status: filled ? "ok" : "fail",
-      reason: filled ? undefined : "fill-failed",
-      matchConfidence: match.confidence,
-      matchStrategy: match.strategy,
-    };
     }),
-    ...plan.unmatchedSource.map((field): FillResult => ({
-      selector: field.selector,
-      status: "fail",
-      reason: "no-match",
-    })),
+    ...plan.unmatchedSource.map(
+      (field): FillResult => ({
+        selector: field.selector,
+        status: "fail",
+        reason: "no-match",
+      }),
+    ),
   ];
 }

@@ -26,23 +26,18 @@ export function isVisible(el: HTMLElement): boolean {
 
 /** Returns true if the element can be edited by the user. */
 export function isEditable(
-  el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
 ): boolean {
   return !el.disabled && !(el as HTMLInputElement).readOnly;
 }
 
 /** Returns true if the element is a non-data input button. */
 export function isButtonType(el: HTMLInputElement): boolean {
-  return (
-    el.tagName === "INPUT" &&
-    BUTTON_TYPES.has((el.type || "").toLowerCase())
-  );
+  return el.tagName === "INPUT" && BUTTON_TYPES.has((el.type || "").toLowerCase());
 }
 
 /** Returns true when the field carries no meaningful value. */
-export function isEmpty(
-  el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-): boolean {
+export function isEmpty(el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement): boolean {
   const tag = el.tagName.toLowerCase();
   const type = (el as HTMLInputElement).type?.toLowerCase() ?? "";
   if (tag === "select") {
@@ -50,15 +45,14 @@ export function isEmpty(
       ? (el as HTMLSelectElement).selectedOptions.length === 0
       : el.value === "";
   }
-  if (type === "checkbox" || type === "radio")
-    return !(el as HTMLInputElement).checked;
+  if (type === "checkbox" || type === "radio") return !(el as HTMLInputElement).checked;
   return el.value === "";
 }
 
 /** Extracts a serialisable info object from a form element. */
 export function extractInfo(
   el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement,
-  includeOptions: boolean = false
+  includeOptions: boolean = false,
 ): FieldInfo {
   const tag = el.tagName.toLowerCase();
   const type = ((el as HTMLInputElement).type ?? "").toLowerCase();
@@ -100,7 +94,7 @@ export function extractInfo(
     info.checked = inp.checked;
     if (type === "radio" && inp.name) {
       const checked = document.querySelector<HTMLInputElement>(
-        `input[type="radio"][name="${cssEscape(inp.name)}"]:checked`
+        `input[type="radio"][name="${cssEscape(inp.name)}"]:checked`,
       );
       info.groupSelectedValue = checked ? checked.value : null;
     }
@@ -176,7 +170,7 @@ function enrichIdentity(info: FieldInfo): void {
 /** Collects form fields from the document according to options. */
 export function collectFields(
   options: CollectOptions = {},
-  root: Document | Element = document
+  root: Document | Element = document,
 ): FieldInfo[] {
   const {
     includeHidden = false,
@@ -192,8 +186,7 @@ export function collectFields(
   >("input,select,textarea");
 
   for (const el of Array.from(els)) {
-    if (!includeButtons && el.tagName === "INPUT" && isButtonType(el as HTMLInputElement))
-      continue;
+    if (!includeButtons && el.tagName === "INPUT" && isButtonType(el as HTMLInputElement)) continue;
     if (!includeHidden && !isVisible(el as HTMLElement)) continue;
     if (!includeDisabled && !isEditable(el as HTMLInputElement)) continue;
     if (!includeEmpty && isEmpty(el as HTMLInputElement)) continue;
@@ -206,7 +199,7 @@ export function collectFields(
 /** Collects fields and enriches them with labels, semantics, repeat groups and stable identity. */
 export function analyzeFields(
   options: AnalyzeOptions = {},
-  root: Document | Element = document
+  root: Document | Element = document,
 ): FieldInfo[] {
   const {
     analyzeLabels = true,
@@ -222,16 +215,15 @@ export function analyzeFields(
   } = options;
   const allEls = Array.from(
     root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>(
-      "input,select,textarea"
-    )
+      "input,select,textarea",
+    ),
   );
   const pairs: Array<{
     el: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
     info: FieldInfo;
   }> = [];
   for (const el of allEls) {
-    if (!includeButtons && el.tagName === "INPUT" && isButtonType(el as HTMLInputElement))
-      continue;
+    if (!includeButtons && el.tagName === "INPUT" && isButtonType(el as HTMLInputElement)) continue;
     if (!includeHidden && !isVisible(el as HTMLElement)) continue;
     if (!includeDisabled && !isEditable(el as HTMLInputElement)) continue;
     if (!includeEmpty && isEmpty(el as HTMLInputElement)) continue;
