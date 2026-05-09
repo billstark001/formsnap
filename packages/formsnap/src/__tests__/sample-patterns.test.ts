@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve } from "node:path";
 import { describe, it, expect, beforeEach } from "vitest";
 import { JSDOM } from "jsdom";
 import { analyzeFields, collectSnapshot, restoreSnapshot } from "../index.js";
@@ -5,6 +8,7 @@ import type { FormSnapshot } from "../types.js";
 
 let dom: JSDOM;
 let doc: Document;
+const testDir = fileURLToPath(new URL(".", import.meta.url));
 
 function setup(html: string): Document {
   dom = new JSDOM(`<!DOCTYPE html><body>${html}</body>`, {
@@ -167,5 +171,106 @@ describe("sample-derived form patterns", () => {
     const results = restoreSnapshot(snapshot, { allowWeakMatches: true, fillReadonly: true }, doc);
     expect(results.filter((r) => r.status === "ok").length).toBeGreaterThanOrEqual(3);
     expect((doc.querySelector("textarea") as HTMLTextAreaElement).value).toBe("hello");
+  });
+
+  it("keeps same-label education summaries separate on the Talentio sample page", () => {
+    setup(readFileSync(resolve(testDir, "../../../../tmp/test-sample-1.html"), "utf8"));
+    const snapshot = changedIdsSnapshot();
+    const sourceFields = snapshot.fields
+      .filter((field) => /^educations\[\d+\]\.description$/.test(field.name ?? ""))
+      .map((field) => ({
+        ...field,
+        value: `${field.name}-VALUE`,
+      }));
+
+    const results = restoreSnapshot(
+      { ...snapshot, fields: sourceFields },
+      { allowWeakMatches: true },
+      doc,
+    );
+
+    expect(results.every((result) => result.status === "ok")).toBe(true);
+    expect(
+      (doc.querySelector('[name="educations[0].description"]') as HTMLTextAreaElement).value,
+    ).toBe("educations[0].description-VALUE");
+    expect(
+      (doc.querySelector('[name="educations[1].description"]') as HTMLTextAreaElement).value,
+    ).toBe("educations[1].description-VALUE");
+  });
+
+  it("uses generic hidden discriminators so the Talentio Github account does not fill earlier account fields", () => {
+    setup(readFileSync(resolve(testDir, "../../../../tmp/test-sample-1.html"), "utf8"));
+    const snapshot = changedIdsSnapshot();
+    const github = snapshot.fields.find(
+      (field) => field.name === "socialNetworkServices[2].account",
+    );
+    expect(github).toBeTruthy();
+
+    const results = restoreSnapshot(
+      { ...snapshot, fields: [{ ...github!, value: "octocat" }] },
+      { allowWeakMatches: true },
+      doc,
+    );
+
+    expect(results).toEqual([expect.objectContaining({ status: "ok" })]);
+    expect(
+      (doc.querySelector('[name="socialNetworkServices[0].account"]') as HTMLInputElement).value,
+    ).toBe("");
+    expect(
+      (doc.querySelector('[name="socialNetworkServices[1].account"]') as HTMLInputElement).value,
+    ).toBe("");
+    expect(
+      (doc.querySelector('[name="socialNetworkServices[2].account"]') as HTMLInputElement).value,
+    ).toBe("octocat");
+    expect(
+      (doc.querySelector('[name="socialNetworkServices[4].account"]') as HTMLInputElement).value,
+    ).toBe("");
+  });
+
+  it("generalizes discriminator matching beyond social media fields", () => {
+    setup(`
+      <form>
+        <div class="item">
+          <input type="hidden" name="contacts[0].kind" value="home">
+          <span class="item-title">Home</span>
+          <input name="contacts[0].value" value="home@example.test">
+        </div>
+        <div class="item">
+          <input type="hidden" name="contacts[1].kind" value="work">
+          <span class="item-title">Work</span>
+          <input name="contacts[1].value" value="work@example.test">
+        </div>
+      </form>
+    `);
+    const snapshot = changedIdsSnapshot();
+    const work = snapshot.fields.find((field) => field.name === "contacts[1].value");
+    expect(work).toBeTruthy();
+
+    setup(`
+      <form>
+        <div class="item">
+          <input type="hidden" name="contacts[0].kind" value="home">
+          <span class="item-title">Home</span>
+          <input name="contacts[0].value" value="">
+        </div>
+        <div class="item">
+          <input type="hidden" name="contacts[1].kind" value="work">
+          <span class="item-title">Work</span>
+          <input name="contacts[1].value" value="">
+        </div>
+      </form>
+    `);
+
+    const results = restoreSnapshot(
+      { ...snapshot, fields: [{ ...work!, value: "new-work@example.test" }] },
+      { allowWeakMatches: true },
+      doc,
+    );
+
+    expect(results).toEqual([expect.objectContaining({ status: "ok" })]);
+    expect((doc.querySelector('[name="contacts[0].value"]') as HTMLInputElement).value).toBe("");
+    expect((doc.querySelector('[name="contacts[1].value"]') as HTMLInputElement).value).toBe(
+      "new-work@example.test",
+    );
   });
 });

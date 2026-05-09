@@ -32,6 +32,34 @@ function matchingIdentitySources(source: FieldInfo, target: FieldInfo): string[]
   return (source.identity?.sources ?? []).filter((item) => targetSources.has(item));
 }
 
+function distinctiveIdentitySources(sources: string[]): string[] {
+  return sources.filter((source) => !/^[ft]/.test(source));
+}
+
+function sourcesByPrefix(field: FieldInfo, prefix: string): Set<string> {
+  return new Set((field.identity?.sources ?? []).filter((source) => source.startsWith(prefix)));
+}
+
+function intersects(a: Set<string>, b: Set<string>): boolean {
+  for (const item of a) if (b.has(item)) return true;
+  return false;
+}
+
+function tieBreaker(match: FieldMatch): number {
+  const source = match.source;
+  const target = match.target;
+  let score = 0;
+  if (same(source.identity?.stableKey, target.identity?.stableKey)) score += 10_000;
+  if (source.selector === target.selector && (source.identity?.selectorReliability ?? 0) >= 70)
+    score += 5_000;
+  if (source.name && source.name === target.name) score += 4_000;
+  if (same(source.label?.text, target.label?.text)) score += 1_000;
+  if (same(source.repeat?.itemIndex, target.repeat?.itemIndex)) score += 500;
+  if (same(source.repeat?.colIndex, target.repeat?.colIndex)) score += 200;
+  score += distinctiveIdentitySources(matchingIdentitySources(source, target)).length * 20;
+  return score;
+}
+
 export function scoreFieldMatch(
   source: FieldInfo,
   target: FieldInfo,
@@ -46,10 +74,33 @@ export function scoreFieldMatch(
 
   const preset = identityPreset(options);
   const identityMatches = matchingIdentitySources(source, target);
-  if (identityMatches.length >= preset.minimumSourceMatches) {
+  const distinctiveMatches = distinctiveIdentitySources(identityMatches);
+  const sourceDiscriminators = sourcesByPrefix(source, "x");
+  const targetDiscriminators = sourcesByPrefix(target, "x");
+  const discriminatorMismatch =
+    sourceDiscriminators.size > 0 &&
+    targetDiscriminators.size > 0 &&
+    !intersects(sourceDiscriminators, targetDiscriminators);
+  const sourceContext = sourcesByPrefix(source, "c");
+  const targetContext = sourcesByPrefix(target, "c");
+  const contextMismatch =
+    sourceContext.size > 0 && targetContext.size > 0 && !intersects(sourceContext, targetContext);
+
+  if (discriminatorMismatch) {
+    return {
+      source,
+      target,
+      confidence: 0,
+      rawScore: 0,
+      strategy: "conflicting discriminator",
+      evidence: ["conflicting discriminator"],
+    };
+  }
+
+  if (distinctiveMatches.length >= preset.minimumSourceMatches) {
     add(
       preset.score,
-      `same identity sources (${identityMatches.length}/${preset.minimumSourceMatches})`,
+      `same distinctive identity sources (${distinctiveMatches.length}/${preset.minimumSourceMatches})`,
     );
   }
   if (same(source.identity?.stableKey, target.identity?.stableKey)) add(100, "same stableKey");
@@ -70,9 +121,15 @@ export function scoreFieldMatch(
   }
   if (
     same(source.repeat?.groupKey, target.repeat?.groupKey) &&
+    same(source.repeat?.colIndex, target.repeat?.colIndex) &&
+    same(source.repeat?.itemIndex, target.repeat?.itemIndex)
+  ) {
+    add(40, "same repeat group row/column");
+  } else if (
+    same(source.repeat?.groupKey, target.repeat?.groupKey) &&
     same(source.repeat?.colIndex, target.repeat?.colIndex)
   ) {
-    add(35, "same repeat group column");
+    add(10, "same repeat group column");
   } else if (
     source.repeat &&
     target.repeat &&
@@ -94,6 +151,10 @@ export function scoreFieldMatch(
     const b = target.options.map((o) => normalizeText(o.text)).join("|");
     if (a === b) add(25, "same select options");
   }
+  if (contextMismatch && score > 55) {
+    score = 55;
+    evidence.push("context mismatch cap");
+  }
   if (source.selector === target.selector && selectorLooksNth(source.selector) && score < 40) {
     score = Math.min(40, score + 20);
     evidence.push("nth-of-type selector capped");
@@ -107,6 +168,7 @@ export function scoreFieldMatch(
     source,
     target,
     confidence: Math.min(1, score / 100),
+    rawScore: score,
     strategy: evidence[0]?.split(" +")[0] ?? "no-match",
     evidence,
   };
@@ -125,7 +187,13 @@ export function matchFields(
       if (match.confidence >= min) candidates.push(match);
     }
   }
-  candidates.sort((a, b) => b.confidence - a.confidence);
+  candidates.sort((a, b) => {
+    const confidence = b.confidence - a.confidence;
+    if (confidence) return confidence;
+    const rawScore = (b.rawScore ?? 0) - (a.rawScore ?? 0);
+    if (rawScore) return rawScore;
+    return tieBreaker(b) - tieBreaker(a);
+  });
   const usedSource = new Set<FieldInfo>();
   const usedTarget = new Set<FieldInfo>();
   const matches: FieldMatch[] = [];

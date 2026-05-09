@@ -13,6 +13,8 @@ const SOURCE_CODES: Record<StableIdentitySourceKind, string> = {
   "structural-path": "p",
   autocomplete: "a",
   "option-text": "o",
+  context: "c",
+  discriminator: "x",
   "naive-id": "d",
 };
 

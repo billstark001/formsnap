@@ -155,49 +155,68 @@ export function restoreSnapshot(
     ];
   }
 
-  return [
-    ...plan.matches.map((match): FillResult => {
-      const el = findElement(match.target, false, root);
-      if (!el) {
-        return {
-          selector: match.source.selector,
-          targetSelector: match.target.selector,
-          status: "fail",
-          reason: "target-not-found",
-          matchConfidence: match.confidence,
-          matchStrategy: match.strategy,
-        };
-      }
-      if ((el as HTMLInputElement).disabled && !fillDisabled) {
-        return {
-          selector: match.source.selector,
-          targetSelector: match.target.selector,
-          status: "skip",
-          reason: "disabled",
-          matchConfidence: match.confidence,
-          matchStrategy: match.strategy,
-        };
-      }
-      if ((el as HTMLInputElement).readOnly && !fillReadonly) {
-        return {
-          selector: match.source.selector,
-          targetSelector: match.target.selector,
-          status: "skip",
-          reason: "readonly",
-          matchConfidence: match.confidence,
-          matchStrategy: match.strategy,
-        };
-      }
-      const filled = fillElement(el, match.source, doFire);
-      return {
+  const usedTargets = new WeakSet<Element>();
+  const matchedResults: FillResult[] = [];
+  for (const match of plan.matches) {
+    const el = findElement(match.target, false, root);
+    if (!el) {
+      matchedResults.push({
         selector: match.source.selector,
         targetSelector: match.target.selector,
-        status: filled ? "ok" : "fail",
-        reason: filled ? undefined : "fill-failed",
+        status: "fail",
+        reason: "target-not-found",
         matchConfidence: match.confidence,
         matchStrategy: match.strategy,
-      };
-    }),
+      });
+      continue;
+    }
+    if (usedTargets.has(el)) {
+      matchedResults.push({
+        selector: match.source.selector,
+        targetSelector: match.target.selector,
+        status: "skip",
+        reason: "duplicate-target",
+        matchConfidence: match.confidence,
+        matchStrategy: match.strategy,
+      });
+      continue;
+    }
+    if ((el as HTMLInputElement).disabled && !fillDisabled) {
+      matchedResults.push({
+        selector: match.source.selector,
+        targetSelector: match.target.selector,
+        status: "skip",
+        reason: "disabled",
+        matchConfidence: match.confidence,
+        matchStrategy: match.strategy,
+      });
+      continue;
+    }
+    if ((el as HTMLInputElement).readOnly && !fillReadonly) {
+      matchedResults.push({
+        selector: match.source.selector,
+        targetSelector: match.target.selector,
+        status: "skip",
+        reason: "readonly",
+        matchConfidence: match.confidence,
+        matchStrategy: match.strategy,
+      });
+      continue;
+    }
+    usedTargets.add(el);
+    const filled = fillElement(el, match.source, doFire);
+    matchedResults.push({
+      selector: match.source.selector,
+      targetSelector: match.target.selector,
+      status: filled ? "ok" : "fail",
+      reason: filled ? undefined : "fill-failed",
+      matchConfidence: match.confidence,
+      matchStrategy: match.strategy,
+    });
+  }
+
+  return [
+    ...matchedResults,
     ...plan.unmatchedSource.map(
       (field): FillResult => ({
         selector: field.selector,

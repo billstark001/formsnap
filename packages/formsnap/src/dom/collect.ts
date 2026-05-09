@@ -7,7 +7,7 @@ import { detectRepeatGroups } from "../analysis/repeat.js";
 import { applyHeuristicRules, defaultHeuristicRules, mergeRuleSets } from "../rules/rules.js";
 import { applyPostalAndPhoneRepresentations, detectSemantic } from "../analysis/semantic.js";
 import { getFieldIdentity } from "./selector.js";
-import { normalizeText, tokenizeIdentifier } from "../shared/text.js";
+import { cleanLabelText, normalizeText, tokenizeIdentifier } from "../shared/text.js";
 import type { AnalyzeOptions, CollectOptions, FieldInfo } from "../types.js";
 
 const BUTTON_TYPES = new Set(["button", "submit", "reset", "image"]);
@@ -127,6 +127,8 @@ function enrichIdentity(info: FieldInfo): void {
   const repeatColumn = info.repeat
     ? `${info.repeat.groupKey}:${info.repeat.colIndex ?? info.repeat.fieldIndex}`
     : undefined;
+  const contextTokens = info.context?.tokens ?? [];
+  const discriminators = info.context?.discriminators ?? [];
   const stableKey = stableHash([
     "v2",
     info.identity.formKey,
@@ -141,6 +143,8 @@ function enrichIdentity(info: FieldInfo): void {
     info.identity.structuralPath,
     info.debug?.autocomplete,
     optionTextHash,
+    contextTokens,
+    discriminators,
   ]);
   info.identity.stableKey = `fs_${stableKey}`;
   info.identity.weakKey = `fw_${stableHash([info.tag, info.type, info.semantic?.slot, label, stableNameTokens])}`;
@@ -162,9 +166,83 @@ function enrichIdentity(info: FieldInfo): void {
       ? { kind: "autocomplete", value: info.debug.autocomplete }
       : undefined,
     optionTextHash ? { kind: "option-text", value: optionTextHash } : undefined,
+    ...contextTokens.map((value) => ({ kind: "context" as const, value })),
+    ...discriminators.map((value) => ({ kind: "discriminator" as const, value })),
     { kind: "naive-id", value: createNaiveId(info) },
   ]);
   info.identity.evidence.push("stable key includes label/semantic/repeat/structure");
+}
+
+function nearestFieldContainer(el: Element): Element | null {
+  let node = el.parentElement;
+  while (node && !/^(body|html|form)$/i.test(node.tagName)) {
+    const fieldCount = node.querySelectorAll("input,select,textarea").length;
+    if (fieldCount >= 1 && fieldCount <= 8) return node;
+    node = node.parentElement;
+  }
+  return el.parentElement;
+}
+
+function hiddenDiscriminators(el: Element): string[] {
+  const result: string[] = [];
+  const fieldName = (el as HTMLInputElement).name ?? "";
+  let node = nearestFieldContainer(el);
+  let depth = 0;
+  while (node && depth < 3 && !/^(body|html|form)$/i.test(node.tagName)) {
+    for (const hidden of Array.from(
+      node.querySelectorAll<HTMLInputElement>("input[type=hidden]"),
+    )) {
+      if (hidden === el || !hidden.value) continue;
+      const name = hidden.name || hidden.id || "hidden";
+      const normalizedName = name.replace(/\[\d+\]/g, "[]").replace(/\d+/g, "#");
+      const sharesArrayRoot =
+        fieldName && name && fieldName.replace(/\[\d+\].*$/, "") === name.replace(/\[\d+\].*$/, "");
+      const local = hidden.parentElement === el.parentElement || hidden.parentElement === node;
+      if (!sharesArrayRoot && !local) continue;
+      result.push(`${normalizeText(normalizedName)}=${normalizeText(hidden.value)}`);
+    }
+    if (result.length) break;
+    node = node.parentElement;
+    depth++;
+  }
+  return Array.from(new Set(result)).slice(0, 6);
+}
+
+function textTokensFromElement(el: Element | null): string[] {
+  if (!el) return [];
+  const text = cleanLabelText(el.textContent ?? "");
+  if (!text || text.length > 120) return [];
+  return [normalizeText(text)];
+}
+
+function contextTokens(el: Element): string[] {
+  const container = nearestFieldContainer(el);
+  const tokens: string[] = [];
+  const previous = el.previousElementSibling;
+  tokens.push(...textTokensFromElement(previous));
+
+  if (container) {
+    for (const selector of [
+      "[class*='title']",
+      "[class*='prepend']",
+      "[class*='prefix']",
+      "[class*='label']",
+      "label",
+      "span",
+    ]) {
+      for (const candidate of Array.from(container.querySelectorAll(selector))) {
+        if (candidate.contains(el)) continue;
+        tokens.push(...textTokensFromElement(candidate));
+      }
+    }
+    const classTokens = Array.from(container.querySelectorAll<HTMLElement>("[class]"))
+      .flatMap((item) => Array.from(item.classList))
+      .filter((item) => /icon|type|kind|provider|service/i.test(item))
+      .map((item) => normalizeText(item));
+    tokens.push(...classTokens);
+  }
+
+  return Array.from(new Set(tokens.filter(Boolean))).slice(0, 8);
 }
 
 /** Collects form fields from the document according to options. */
@@ -255,6 +333,10 @@ export function analyzeFields(
     if (analyzeLabels) info.label = detectFieldLabel(el);
     if (analyzeSemantics) info.semantic = detectSemantic(info);
     info.identity = getFieldIdentity(el, { ...locationParts, formKey });
+    info.context = {
+      tokens: contextTokens(el),
+      discriminators: hiddenDiscriminators(el),
+    };
   });
 
   if (analyzeRepeats) detectRepeatGroups(fields, root);

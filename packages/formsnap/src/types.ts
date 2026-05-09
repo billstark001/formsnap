@@ -52,6 +52,8 @@ export type StableIdentitySourceKind =
   | "structural-path"
   | "autocomplete"
   | "option-text"
+  | "context"
+  | "discriminator"
   | "naive-id";
 
 /** Compact encoded identity fact: one source-kind code plus a stable value hash. */
@@ -104,6 +106,10 @@ export interface FieldInfo {
   identity?: FieldIdentityInfo;
   repeat?: RepeatGroupInfo;
   aliases?: string[];
+  context?: {
+    tokens?: string[];
+    discriminators?: string[];
+  };
   debug?: Record<string, unknown>;
 }
 
@@ -229,6 +235,7 @@ export interface FieldMatch {
   source: FieldInfo;
   target: FieldInfo;
   confidence: number;
+  rawScore?: number;
   strategy: string;
   evidence: string[];
 }
