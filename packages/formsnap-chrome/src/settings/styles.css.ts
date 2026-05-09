@@ -49,10 +49,29 @@ export const optionLabel = style({
 });
 
 export const radioInput = style({
-  accentColor: "#0d6efd",
+  appearance: "none",
+  WebkitAppearance: "none",
   width: 16,
   height: 16,
   cursor: "pointer",
+  border: "1.5px solid #bbb",
+  borderRadius: "50%",
+  background: "#fff",
+  flexShrink: 0,
+  transition: "border-color .15s, box-shadow .15s",
+  selectors: {
+    "&:checked": {
+      borderColor: "#0d6efd",
+      borderWidth: 5,
+    },
+    "&:hover:not(:checked)": {
+      borderColor: "#888",
+    },
+    "&:focus-visible": {
+      outline: "none",
+      boxShadow: "0 0 0 2px rgba(13,110,253,.2)",
+    },
+  },
 });
 
 export const savedNote = style({

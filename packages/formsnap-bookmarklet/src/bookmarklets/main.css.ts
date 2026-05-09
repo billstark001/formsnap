@@ -114,8 +114,30 @@ export const checkLabel = style({
 
 export const checkInput = style({
   all: "revert",
+  appearance: "none",
+  WebkitAppearance: "none",
+  width: 16,
+  height: 16,
   marginTop: 3,
   flexShrink: 0,
+  border: "1.5px solid #bbb",
+  borderRadius: 3,
+  background: "#fff",
+  cursor: "pointer",
+  transition: "background .15s, border-color .15s",
+  selectors: {
+    "&:checked": {
+      background: "#0d6efd",
+      borderColor: "#0d6efd",
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='white' d='M13.78 4.22a.75.75 0 0 1 0 1.06l-7.25 7.25a.75.75 0 0 1-1.06 0L2.22 9.28a.75.75 0 0 1 1.06-1.06L6 10.94l6.72-6.72a.75.75 0 0 1 1.06 0z'/%3E%3C/svg%3E")`,
+      backgroundSize: 12,
+      backgroundPosition: "center",
+      backgroundRepeat: "no-repeat",
+    },
+    "&:hover:not(:checked)": {
+      borderColor: "#888",
+    },
+  },
 });
 
 export const checkTitle = style({
