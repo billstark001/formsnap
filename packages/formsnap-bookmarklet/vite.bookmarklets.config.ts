@@ -14,9 +14,9 @@ const distDir = path.resolve(__dirname, "dist-bookmarklets");
  * Phase 1 (generateBundle): prepend `var __FS_CSS__="";` as a placeholder into
  * the IIFE entry chunk so TypeScript's `declare const __FS_CSS__` resolves.
  *
- * Phase 2 (closeBundle): after Vite flushes all assets to disk,
- * read the extracted `style.css`, fill in the placeholder in `formsnap.js`,
- * then delete `style.css` so only one self-contained file remains.
+ * Phase 2 (closeBundle): after Vite flushes all assets to disk, read every
+ * extracted CSS file, fill the placeholder in `formsnap.js`, then delete the
+ * CSS files so the bookmarklet remains self-contained.
  */
 function inlineCssAsVarPlugin(): Plugin {
   return {
@@ -32,15 +32,25 @@ function inlineCssAsVarPlugin(): Plugin {
     },
 
     closeBundle() {
-      const cssPath = path.join(distDir, "style.css");
       const jsPath = path.join(distDir, "formsnap.js");
-      if (!fs.existsSync(cssPath) || !fs.existsSync(jsPath)) return;
+      if (!fs.existsSync(jsPath) || !fs.existsSync(distDir)) return;
 
-      const css = fs.readFileSync(cssPath, "utf-8").trim();
-      let js = fs.readFileSync(jsPath, "utf-8");
-      js = js.replace(`var __FS_CSS__="";`, `var __FS_CSS__=${JSON.stringify(css)};`);
-      fs.writeFileSync(jsPath, js);
-      fs.unlinkSync(cssPath);
+      const cssFiles = fs.readdirSync(distDir).filter((file) => file.endsWith(".css"));
+      if (cssFiles.length === 0) return;
+
+      const css = cssFiles
+        .map((file) => fs.readFileSync(path.join(distDir, file), "utf-8").trim())
+        .filter(Boolean)
+        .join("\n");
+      const js = fs.readFileSync(jsPath, "utf-8");
+      fs.writeFileSync(
+        jsPath,
+        js.replace(`var __FS_CSS__="";`, `var __FS_CSS__=${JSON.stringify(css)};`),
+      );
+
+      for (const file of cssFiles) {
+        fs.unlinkSync(path.join(distDir, file));
+      }
     },
   };
 }
@@ -55,7 +65,7 @@ export default defineConfig({
       fileName: () => "formsnap.js",
     },
     outDir: "dist-bookmarklets",
-    emptyOutDir: false,
+    emptyOutDir: true,
     cssCodeSplit: false,
     minify: "esbuild",
     rollupOptions: {
